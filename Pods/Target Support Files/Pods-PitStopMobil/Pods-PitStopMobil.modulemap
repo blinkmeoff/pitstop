@@ -1,0 +1,6 @@
+framework module Pods_PitStopMobil {
+  umbrella header "Pods-PitStopMobil-umbrella.h"
+
+  export *
+  module * { export * }
+}
