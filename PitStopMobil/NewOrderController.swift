@@ -36,12 +36,12 @@ class NewOrderController: UIViewController {
   }()
   
   @objc private func handleNext() {
-    let newOrderInfoConroller = NewOrderInfoController()
-    newOrderInfoConroller.client = client
-    newOrderInfoConroller.selectedSkills = self.selectedSkills
+    let newOrderCarChooseVC = NewOrderCarChooseVC(collectionViewLayout: UICollectionViewFlowLayout())
+    newOrderCarChooseVC.client = client
+    newOrderCarChooseVC.selectedSkills = self.selectedSkills
     navigationController?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain
       , target: self, action: nil)
-    navigationController?.pushViewController(newOrderInfoConroller, animated: true)
+    navigationController?.pushViewController(newOrderCarChooseVC, animated: true)
   }
   
   let chooseLabel: UILabel = {

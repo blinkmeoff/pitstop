@@ -21,7 +21,7 @@ class ClientProfileHeader: UICollectionViewCell {
   
   var client: Client? {
     didSet {
-//      activityIndicatorView.startAnimating()
+      activityIndicatorView.startAnimating()
       
       guard let profileImageUrl = client?.profileImageUrl else { return }
       profileImageView.loadImage(urlString: profileImageUrl) {
@@ -32,14 +32,8 @@ class ClientProfileHeader: UICollectionViewCell {
       }
       
       guard let username = client?.username else { return }
-      guard let carMark = client?.carMark else { return }
-      guard let carModel = client?.carModel else { return }
       
-      let attributedText = NSMutableAttributedString(string: "\(username)\n", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17)])
-      
-      attributedText.append(NSAttributedString(string: "\(carMark), ", attributes: [NSAttributedStringKey.foregroundColor: UIColor.lightGray, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 15)]))
-      
-      attributedText.append(NSAttributedString(string: "\(carModel)", attributes: [NSAttributedStringKey.foregroundColor: UIColor.lightGray, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 15)]))
+      let attributedText = NSMutableAttributedString(string: "\(username)", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17)])
       
       usernameLabel.attributedText = attributedText
       
@@ -161,8 +155,7 @@ class ClientProfileHeader: UICollectionViewCell {
     usernameLabel.anchor(top: profileImageView.topAnchor, left: profileImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 8, paddingLeft: 12, paddingBottom: 0, paddingRight: 12, width: 0, height: 0)
     
     addSubview(favoriteButton)
-    favoriteButton.anchor(top: usernameLabel.bottomAnchor, left: profileImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 12, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
-    
+    favoriteButton.anchor(top: nil, left: profileImageView.rightAnchor, bottom: profileImageView.bottomAnchor, right: nil, paddingTop: 12, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
     
   }
   

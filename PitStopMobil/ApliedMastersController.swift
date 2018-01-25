@@ -9,11 +9,24 @@
 import UIKit
 import Firebase
 
+struct AppliedMaster {
+  
+  let master: Master?
+  let creationDate: Double?
+  let comment: String?
+  
+  init(master: Master, dictionary: [String: Any]) {
+    self.master = master
+    self.comment = dictionary["comment"] as? String ?? ""
+    self.creationDate = dictionary["creationDate"] as? Double ?? 0
+  }
+}
+
 class ApliedMastersController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
   
   var key: String?
-  var users = [Master]()
-  var usersDictionary = [String: Master]()
+  var users = [AppliedMaster]()
+  var usersDictionary = [String: AppliedMaster]()
   
   var item: Int?
   var menuBarPendingCell: MenuBarPendingCell?
@@ -48,18 +61,23 @@ class ApliedMastersController: UICollectionViewController, UICollectionViewDeleg
   
   private func fetchApliedUsers() {
     guard let key = self.key else { return }
-    let ref = Database.database().reference().child("user-applied-to-orders").child(key)
-    ref.observeSingleEvent(of: .value) { (snapshot) in
-      guard let dictionary = snapshot.value as? [String: Any] else { return }
-      guard let userSnapshotKey = dictionary.first?.key else { return }
+    let ref = Database.database().reference().child("users-applied-to-orders").child(key)
+    ref.observe(.value) { (snapshot) in
+      guard let dictionaries = snapshot.value as? [String: Any] else { return }
       
-      let userRef = Database.database().reference().child("users").child(userSnapshotKey)
-      userRef.observeSingleEvent(of: .value, with: { (snapshot) in
-        guard let dictionary = snapshot.value as? [String: Any] else { return }
-        let user = Master(uid: snapshot.key, dictionary: dictionary)
-        self.usersDictionary[snapshot.key] = user
-        self.attemptReloadOfTable()
-      })
+      for dictionaryValue in dictionaries {
+        let userSnapshotKey = dictionaryValue.key
+        guard let value = dictionaryValue.value as? [String: Any] else { return }
+        
+        let userRef = Database.database().reference().child("users").child(userSnapshotKey)
+        userRef.observeSingleEvent(of: .value, with: { (snapshot) in
+          guard let dictionary = snapshot.value as? [String: Any] else { return }
+          let user = Master(uid: snapshot.key, dictionary: dictionary)
+          let appliedMaster = AppliedMaster(master: user, dictionary: value)
+          self.usersDictionary[snapshot.key] = appliedMaster
+          self.attemptReloadOfTable()
+        })
+      }
       
     }
   }
@@ -98,7 +116,16 @@ class ApliedMastersController: UICollectionViewController, UICollectionViewDeleg
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: view.frame.width, height: 84)
+    let frame = CGRect(x: 0, y: 0, width: collectionView.frame.width, height: 50)
+    let dummyCell = ApliedMasterCell(frame: frame)
+    dummyCell.user = users[indexPath.item]
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: collectionView.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(84, estimatedSize.height)
+    return CGSize(width: collectionView.frame.width, height: height)
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
@@ -128,7 +155,7 @@ class ApliedMastersController: UICollectionViewController, UICollectionViewDeleg
   }
   
   override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    guard let uid = users[indexPath.item].uid else { return }
+    guard let uid = users[indexPath.item].master?.uid else { return }
     presentProfile(uid: uid)
   }
   
@@ -145,11 +172,15 @@ class ApliedMastersController: UICollectionViewController, UICollectionViewDeleg
 
 extension ApliedMastersController: MasterProfileHeaderDelegate, ApliedMasterCellDelegate {
   
+  func didTapEditProfile(master: Master) {
+    
+  }
+  
   func confirm(uid: String, cell: ApliedMasterCell) {
     guard let myUID = Auth.auth().currentUser?.uid else { return }
     guard let key = self.key else { return }
     
-    self.presentConfirmAlert(masterName: cell.user?.username) { (isConfirmed) in
+    self.presentConfirmAlert(masterName: cell.user?.master?.username) { (isConfirmed) in
       if isConfirmed {
         
         let refOrder = Database.database().reference().child("orders").child(key)
@@ -180,16 +211,14 @@ extension ApliedMastersController: MasterProfileHeaderDelegate, ApliedMasterCell
               self.showAlert(with: "Вы успешно выбрали мастера, не забудьте оставить ему отзыв по окончании сделки", completion: {
                 DispatchQueue.main.async {
                   let _ = self.navigationController?.popViewController(animated: true)
-                  
-                    self.clientOrdersController?.scrollToMenuIndex(1)
-                    let indexP = IndexPath(item: 1, section: 0)
-                    self.clientOrdersController?.menuBar.collectionView.selectItem(at: indexP, animated: true, scrollPosition: UICollectionViewScrollPosition())
-                    guard let index = self.item else { return }
-                    self.menuBarPendingCell?.orders.remove(at: index)
-                    self.menuBarPendingCell?.ordersDictionary.removeValue(forKey: key)
-                    let indexPath = IndexPath(item: index, section: 0)
-                    self.menuBarPendingCell?.collectionView.deleteItems(at: [indexPath])
-                    
+                  self.clientOrdersController?.scrollToMenuIndex(1)
+                  let indexP = IndexPath(item: 1, section: 0)
+                  self.clientOrdersController?.menuBar.collectionView.selectItem(at: indexP, animated: true, scrollPosition: UICollectionViewScrollPosition())
+                  guard let index = self.item else { return }
+                  self.menuBarPendingCell?.orders.remove(at: index)
+                  self.menuBarPendingCell?.ordersDictionary.removeValue(forKey: key)
+                  let indexPath = IndexPath(item: index, section: 0)
+                  self.menuBarPendingCell?.collectionView.deleteItems(at: [indexPath])
                 }
               })
             })

@@ -11,8 +11,26 @@ import Firebase
 
 class OrderDetailsController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
   
+  var activeOrdersController: ActiveOrdersController? {
+    didSet {
+      self.applyButton.isHidden = true
+      navigationItem.rightBarButtonItem = nil
+    }
+  }
+  var masterHomeController: MasterHomeController?
+  var item: Int?
   var key: String?
-  var order: Order?
+  var order: Order? {
+    didSet {
+      guard let order = order else { return }
+      setupNavBar()
+
+      let titleString = order.masterApplied ? "УДАЛИТЬ ЗАЯВКУ" : "ПОДАТЬ ЗАЯВКУ"
+      
+      let attributedTitle = NSAttributedString(string: titleString, attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17), NSAttributedStringKey.foregroundColor: UIColor.white])
+      self.applyButton.setAttributedTitle(attributedTitle, for: .normal)
+    }
+  }
   var orderImages = [String]()
   
   let cellId = "cellId"
@@ -21,29 +39,119 @@ class OrderDetailsController: UICollectionViewController, UICollectionViewDelega
   lazy var applyButton: UIButton = {
     let button = UIButton(type: .system)
     button.backgroundColor = Settings.Color.pink
-    
-    let attributedTitle = NSAttributedString(string: "ПОДАТЬ ЗАЯВКУ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17), NSAttributedStringKey.foregroundColor: UIColor.white])
-    button.setAttributedTitle(attributedTitle, for: .normal)
     button.setTitleColor(.white, for: .normal)
     button.addTarget(self, action: #selector(handleApply), for: .touchUpInside)
     return button
   }()
   
-  @objc private func handleApply() {
-    guard let uid = Auth.auth().currentUser?.uid else { return }
-    guard let key = self.key else { return }
-    let ref = Database.database().reference().child("user-applied-to-orders").child(key)
-    ref.updateChildValues([uid: 1]) { (err, reference) in
+  private func handleDelete() {
+    guard let masterUID = Auth.auth().currentUser?.uid else { return }
+    guard let orderUID = self.key else { return }
+    LoadingIndicator.shared.show()
+    let ref = Database.database().reference().child("master-applied-to-orders").child(masterUID).child(orderUID)
+    
+    ref.removeValue { (err, reference) in
       if err != nil {
         print(err ?? "")
+        LoadingIndicator.shared.hide()
+        self.showAlert(with: "Не удалось удалить заявку, попробуйте позже")
+        return
+      }
+      
+      self.removeFromApliedOrders(orderID: orderUID, masterID: masterUID)
+    }
+  }
+  
+  private func removeFromApliedOrders(orderID: String, masterID: String) {
+    let ref = Database.database().reference().child("users-applied-to-orders").child(orderID).child(masterID)
+    
+    ref.removeValue { (err, reference) in
+      if err != nil {
+        print(err ?? "")
+        LoadingIndicator.shared.hide()
+        self.showAlert(with: "Не удалось удалить заявку, попробуйте позже")
+        return
+      }
+      
+      if let item = self.item {
+        if let index = self.masterHomeController?.appliedOrders.index(of: orderID) {
+          self.masterHomeController?.appliedOrders.remove(at: index)
+        }
+        
+        self.masterHomeController?.orders[item].masterApplied = false
+        self.masterHomeController?.collectionView?.reloadData()
+      }
+      
+      LoadingIndicator.shared.hide()
+      self.showAlert(with: "Вы успешно удалили заявку", completion: {
+        self.dismiss(animated: true, completion: nil)
+      })
+    }
+  }
+  
+  @objc private func handleApply() {
+    if let alreadyApplied = order?.masterApplied {
+      if alreadyApplied {
+        handleDelete()
+        return
+      }
+    }
+    
+    presentConfirmAlert(message: "Не желаете ли Вы оставить клиенту комментарий?", title: nil) { (shouldLeaveComment) in
+      if shouldLeaveComment {
+        let quoteCommentController = QuoteCommentController()
+        quoteCommentController.orderDetailsController = self
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        self.navigationController?.navigationBar.tintColor = .black
+        self.navigationController?.pushViewController(quoteCommentController, animated: true)
+      } else {
+        self.sendQuote(with: nil)
+      }
+    }
+  }
+  
+  func sendQuote(with message: String?) {
+    guard let uid = Auth.auth().currentUser?.uid else { return }
+    guard let orderUID = self.key else { return }
+    let ref = Database.database().reference().child("users-applied-to-orders").child(orderUID).child(uid)
+    LoadingIndicator.shared.show()
+    
+    let timestamp = Int(Date().timeIntervalSince1970)
+    var values = ["creationDate": timestamp] as [String: Any]
+    
+    if let msg = message, msg.count > 0 {
+      values["comment"] = msg
+    }
+    
+    ref.updateChildValues(values) { (err, reference) in
+      if err != nil {
+        print(err ?? "")
+        LoadingIndicator.shared.hide()
         self.showAlert(with: "Не удалось подать заявку, попробуйте позже")
         return
       }
-     
+      
+      self.saveMasterApply(to: orderUID)
+    }
+  }
+  
+  private func saveMasterApply(to order: String) {
+    guard let masterUID = Auth.auth().currentUser?.uid else { return }
+    guard let orderUID = self.key else { return }
+    let ref = Database.database().reference().child("master-applied-to-orders").child(masterUID)
+    
+    ref.updateChildValues([orderUID:1]) { (err, reference) in
+      if err != nil {
+        print(err ?? "")
+        LoadingIndicator.shared.hide()
+        self.showAlert(with: "Не удалось подать заявку, попробуйте позже")
+        return
+      }
+      
+      LoadingIndicator.shared.hide()
       self.showAlert(with: "Вы успешно подали заявку на эту работу, Вы получите оповещение если клиент согласится на Ваши услуги", completion: {
         self.dismiss(animated: true, completion: nil)
       })
-      
     }
   }
   
@@ -51,7 +159,6 @@ class OrderDetailsController: UICollectionViewController, UICollectionViewDelega
     super.viewDidLoad()
     view.backgroundColor = .white
     
-    setupNavBar()
     setupImagesArray()
     setupUI()
     masterViewdOrder()
@@ -82,12 +189,51 @@ class OrderDetailsController: UICollectionViewController, UICollectionViewDelega
     }
   }
 
+  var carButton: UIBarButtonItem?
   
   private func setupNavBar() {
     title = "Заказ"
     let closeButton = UIBarButtonItem(image: #imageLiteral(resourceName: "close").withRenderingMode(.alwaysTemplate), style: .plain, target: self, action: #selector(handleDismiss))
     closeButton.tintColor = .black
     navigationItem.leftBarButtonItem = closeButton
+    
+    carButton = UIBarButtonItem(image: #imageLiteral(resourceName: "car"), style: .plain, target: self, action: #selector(handleShowCar))
+    carButton?.tintColor = .black
+    navigationItem.rightBarButtonItem = carButton
+  }
+  
+  
+  @objc private func handleShowCar() {
+    guard let order = self.order else { return }
+    guard let orderOwnerId = order.ownerId else { return }
+    let carId = order.carId
+    
+    if carId.isEmpty {
+      showAlert(with: "Информация об атомобиле недоступна")
+      return
+    }
+    
+    LoadingIndicator.shared.show()
+    
+    let ref = Database.database().reference().child("cars").child(orderOwnerId).child(carId)
+    ref.observeSingleEvent(of: .value, with: { (snapshot) in
+      LoadingIndicator.shared.hide()
+      
+      guard let dictionary = snapshot.value as? [String: Any] else { return }
+      let car = Car(dictionary: dictionary, id: "")
+      
+      let updateCarController = UpdateCarController()
+      updateCarController.car = car
+      updateCarController.isMasterViewing = true
+      self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+      self.navigationController?.navigationBar.tintColor = .black
+      self.navigationController?.pushViewController(updateCarController, animated: true)
+    }) { (err) in
+      print(err)
+      LoadingIndicator.shared.hide()
+      self.showAlert(with: "Не удалось загрузить данные об автомобиле")
+    }
+   
   }
   
   @objc private func handleDismiss() {

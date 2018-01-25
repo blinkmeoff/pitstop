@@ -59,7 +59,7 @@ class MenuBarPendingCell: BaseCell, UICollectionViewDelegateFlowLayout, UICollec
   
   private func fetchMastersApliedToOrder(_ key: String) {
     //implement
-    let ref = Database.database().reference().child("user-applied-to-orders").child(key)
+    let ref = Database.database().reference().child("users-applied-to-orders").child(key)
     ref.observe(.value) { (snapshot) in
       let mastersCount = String(snapshot.childrenCount)
       self.ordersDictionary[key]?.mastersAppliedCount = mastersCount
@@ -123,7 +123,17 @@ class MenuBarPendingCell: BaseCell, UICollectionViewDelegateFlowLayout, UICollec
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: collectionView.frame.width, height: 100)
+
+    let frame = CGRect(x: 0, y: 0, width: collectionView.frame.width, height: 50)
+    let dummyCell = PendingOrderCell(frame: frame)
+    dummyCell.order = orders[indexPath.item]
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: collectionView.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+
+    let height = max(100, estimatedSize.height)
+    return CGSize(width: collectionView.frame.width, height: height)
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {

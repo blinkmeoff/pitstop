@@ -105,6 +105,14 @@ class ChatMessageCell: UICollectionViewCell {
     return imageView
   }()
   
+  let dateLabel: UILabel = {
+    let label = UILabel()
+    label.textColor = .lightGray
+    label.translatesAutoresizingMaskIntoConstraints = false
+    label.font = UIFont.systemFont(ofSize: 8)
+    return label
+  }()
+  
   @objc func handleZoomTap(_ tapGesture: UITapGestureRecognizer) {
     if message?.videoUrl != nil {
       return
@@ -120,27 +128,29 @@ class ChatMessageCell: UICollectionViewCell {
   var bubbleViewRightAnchor: NSLayoutConstraint?
   var bubbleViewLeftAnchor: NSLayoutConstraint?
   
+  var dateLabelRightAnchor: NSLayoutConstraint?
+  var dateLabelLeftAnchor: NSLayoutConstraint?
+  
   override init(frame: CGRect) {
     super.init(frame: frame)
-    
     addSubview(bubbleView)
     addSubview(textView)
     addSubview(profileImageView)
+    addSubview(dateLabel)
     
     bubbleViewRightAnchor = bubbleView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -8)
-    
     bubbleViewRightAnchor?.isActive = true
-    
     bubbleViewLeftAnchor = bubbleView.leftAnchor.constraint(equalTo: profileImageView.rightAnchor, constant: 8)
-    //        bubbleViewLeftAnchor?.active = false
-    
-    
     bubbleView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-    
     bubbleWidthAnchor = bubbleView.widthAnchor.constraint(equalToConstant: 200)
     bubbleWidthAnchor?.isActive = true
+    bubbleView.heightAnchor.constraint(equalTo: self.heightAnchor, constant: -12).isActive = true
     
-    bubbleView.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
+    dateLabelRightAnchor = dateLabel.rightAnchor.constraint(equalTo: bubbleView.rightAnchor, constant: -8)
+    dateLabelRightAnchor?.isActive = true
+//    dateLabelLeftAnchor = dateLabel.leftAnchor.constraint(equalTo: bubbleView.rightAnchor, constant: 8)
+    dateLabel.topAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: 0).isActive = true
+    dateLabel.heightAnchor.constraint(equalToConstant: 12).isActive = true
     
     bubbleView.addSubview(messageImageView)
     messageImageView.leftAnchor.constraint(equalTo: bubbleView.leftAnchor).isActive = true
@@ -164,7 +174,7 @@ class ChatMessageCell: UICollectionViewCell {
     
     //x,y,w,h
     profileImageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8).isActive = true
-    profileImageView.bottomAnchor.constraint(equalTo: self.bottomAnchor).isActive = true
+    profileImageView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
     profileImageView.widthAnchor.constraint(equalToConstant: 32).isActive = true
     profileImageView.heightAnchor.constraint(equalToConstant: 32).isActive = true
     

@@ -120,15 +120,15 @@ class MasterProfileCell: UICollectionViewCell {
     addSubview(creationDateLabel)
     addSubview(ratingImageView)
     
-    usernameLabel.anchor(top: topAnchor, left: profileImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 2, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
-    creationDateLabel.anchor(top: nil, left: usernameLabel.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+    usernameLabel.anchor(top: topAnchor, left: profileImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 2, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 20)
+    creationDateLabel.anchor(top: nil, left: usernameLabel.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 20)
     creationDateLabel.centerYAnchor.constraint(equalTo: usernameLabel.centerYAnchor).isActive = true
     
     ratingImageView.anchor(top: nil, left: nil, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 8, width: 100, height: 20)
     ratingImageView.centerYAnchor.constraint(equalTo: usernameLabel.centerYAnchor).isActive = true
     
     addSubview(textView)
-    textView.anchor(top: creationDateLabel.bottomAnchor, left: profileImageView.rightAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 4, paddingBottom: 4, paddingRight: 4, width: 0, height: 0)
+    textView.anchor(top: ratingImageView.bottomAnchor, left: profileImageView.rightAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 4, paddingBottom: 4, paddingRight: 4, width: 0, height: 0)
     
     addSubview(separatorLine)
     separatorLine.anchor(top: nil, left: profileImageView.rightAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0.75)
@@ -143,6 +143,7 @@ class MasterProfileCell: UICollectionViewCell {
     let textView = UITextView()
     textView.font = UIFont.systemFont(ofSize: 13)
     textView.isScrollEnabled = false
+    textView.isEditable = false
     return textView
   }()
   

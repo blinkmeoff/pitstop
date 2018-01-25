@@ -29,9 +29,7 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
     
     cityTextField.isEnabled = true
     addressTextField.isEnabled = true
-
   }
-  
   
   let plusPhotoButton: UIButton = {
     let button = UIButton(type: .system)
@@ -42,11 +40,46 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
   }()
   
   @objc func handlePlusPhoto() {
-    let imagePickerController = UIImagePickerController()
-    imagePickerController.delegate = self
-    imagePickerController.allowsEditing = true
+    showMediaOptions()
+  }
+  
+  func showMediaOptions() {
     
-    present(imagePickerController, animated: true, completion: nil)
+    let mediaOptions = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+    
+    let cameraOption = UIAlertAction(title: "Сделать фото", style: .default) { (action) in
+      self.openCamera()
+    }
+    
+    let galleryOption = UIAlertAction(title: "Выбрать из галереи", style: .default) { (action) in
+      self.openPhotos()
+    }
+    
+    let cancelAction = UIAlertAction(title: "Отмена", style: .cancel, handler: .none)
+    
+    mediaOptions.addAction(cameraOption)
+    mediaOptions.addAction(galleryOption)
+    mediaOptions.addAction(cancelAction)
+    
+    self.present(mediaOptions, animated: true, completion: .none)
+  }
+  
+  func openCamera() {
+    let imagePicker = UIImagePickerController()
+    imagePicker.allowsEditing = true
+    imagePicker.sourceType = .camera
+    imagePicker.delegate = self
+    
+    self.present(imagePicker, animated: true, completion: .none)
+  }
+  
+  func openPhotos() {
+    let imagePicker = UIImagePickerController()
+    imagePicker.allowsEditing = true
+    imagePicker.sourceType = .photoLibrary
+    imagePicker.delegate = self
+    
+    self.present(imagePicker, animated: true, completion: .none)
   }
   
   var isImageChoosen = false

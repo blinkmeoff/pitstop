@@ -26,10 +26,7 @@ class MenuBarConfirmedCell: BaseCell, UICollectionViewDelegateFlowLayout, UIColl
     
     setupCollectionView()
     fetchPendingOrders()
-    
   }
-  
-
   
   private func fetchPendingOrders() {
     guard let uid = Auth.auth().currentUser?.uid else { return }
@@ -90,12 +87,25 @@ class MenuBarConfirmedCell: BaseCell, UICollectionViewDelegateFlowLayout, UIColl
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! ConfirmedOrderCell
     cell.confirmedOrder = confirmedOrders[indexPath.item]
+    cell.menuBarConfirmedCell = self
     cell.delegate = self
     return cell
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: collectionView.frame.width, height: 100)
+    let frame = CGRect(x: 0, y: 0, width: collectionView.frame.width, height: 50)
+    
+    let dummyCell = ConfirmedOrderCell(frame: frame)
+    if let cell = collectionView.cellForItem(at: indexPath) as? ConfirmedOrderCell {
+      dummyCell.order = cell.order
+    }
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: collectionView.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(100, estimatedSize.height)
+    return CGSize(width: collectionView.frame.width, height: height)
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {

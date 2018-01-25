@@ -2579,11 +2579,179 @@
 		<array>
 			<string>Nomad (RX6400)</string>
 		</array>
-		<key>ZH</key>
+		<key>ZX</key>
 		<array>
 			<string>Admiral</string>
 			<string>GrandTiger</string>
 			<string>Landmark</string>
+		</array>
+		<key>Ё-мобиль</key>
+		<array>
+			<string>Ё-Кроссовер (Опытный образец)</string>
+		</array>
+		<key>Автокам</key>
+		<array>
+			<string>2160</string>
+			<string>2163</string>
+			<string>3101</string>
+		</array>
+		<key>Астро</key>
+		<array>
+			<string>Ока-Астро 11301</string>
+		</array>
+		<key>Бронто</key>
+		<array>
+			<string>Рысь</string>
+		</array>
+		<key>ВАЗ</key>
+		<array>
+			<string>1111 Ока</string>
+			<string>2101</string>
+			<string>2102</string>
+			<string>2103</string>
+			<string>2104</string>
+			<string>2105</string>
+			<string>2106</string>
+			<string>2107</string>
+			<string>2108</string>
+			<string>2109</string>
+			<string>21099</string>
+			<string>2110</string>
+			<string>2111</string>
+			<string>2112</string>
+			<string>2113</string>
+			<string>2114</string>
+			<string>2115</string>
+			<string>2120 Надежда</string>
+			<string>2121 (4x4)</string>
+			<string>2123</string>
+			<string>2129</string>
+			<string>2131 (4x4)</string>
+			<string>2328</string>
+			<string>2329</string>
+			<string>Granta</string>
+			<string>Kalina</string>
+			<string>Largus</string>
+			<string>Priora</string>
+			<string>Revolution</string>
+		</array>
+		<key>ГАЗ</key>
+		<array>
+			<string>69</string>
+			<string>Volga Siber</string>
+			<string>M-20 Победа</string>
+			<string>М1</string>
+			<string>13 Чайка</string>
+			<string>14 Чайка</string>
+			<string>21 Волга</string>
+			<string>22 Волга</string>
+			<string>2308 Атаман</string>
+			<string>2330 Тигр</string>
+			<string>24 Волга</string>
+			<string>3102 Волга</string>
+			<string>31029 Волга</string>
+			<string>3103 Волга</string>
+			<string>3105 Волга</string>
+			<string>3110 Волга</string>
+			<string>31105 Волга</string>
+			<string>3111 Волга</string>
+		</array>
+		<key>ЗАЗ</key>
+		<array>
+			<string>1102 Таврия</string>
+			<string>1103 Славута</string>
+			<string>1105 Дана</string>
+			<string>965</string>
+			<string>966</string>
+			<string>968</string>
+			<string>Chance</string>
+			<string>Forza</string>
+			<string>Sens</string>
+			<string>Vida</string>
+		</array>
+		<key>ЗИЛ</key>
+		<array>
+			<string>114</string>
+			<string>117</string>
+			<string>4104</string>
+		</array>
+		<key>ИЖ</key>
+		<array>
+			<string>2125 Комби</string>
+			<string>2126 Ода</string>
+			<string>21261 Фабула</string>
+			<string>2717</string>
+			<string>Москвич-412</string>
+		</array>
+		<key>КамАЗ</key>
+		<array>
+			<string>1111 Ока</string>
+		</array>
+		<key>Канонир</key>
+		<array>
+			<string>2317</string>
+		</array>
+		<key>ЛУАЗ</key>
+		<array>
+			<string>1302 Волынь</string>
+			<string>967</string>
+			<string>969</string>
+		</array>
+		<key>Москвич</key>
+		<array>
+			<string>Юрий Долгорукий</string>
+			<string>2136</string>
+			<string>2137</string>
+			<string>2138</string>
+			<string>2149</string>
+			<string>2141</string>
+			<string>400</string>
+			<string>401</string>
+			<string>402</string>
+			<string>403</string>
+			<string>407</string>
+			<string>408</string>
+			<string>410</string>
+			<string>411</string>
+			<string>412</string>
+			<string>423</string>
+			<string>426</string>
+			<string>427</string>
+			<string>Дуэт</string>
+			<string>Иван Калита</string>
+			<string>Князь Владимир</string>
+			<string>Святогор</string>
+		</array>
+		<key>СМЗ</key>
+		<array>
+			<string>С-ЗА</string>
+			<string>С-ЗД</string>
+		</array>
+		<key>СеАЗ</key>
+		<array>
+			<string>1111 Ока</string>
+		</array>
+		<key>ТагАЗ</key>
+		<array>
+			<string>Auila</string>
+			<string>C-30</string>
+			<string>C10</string>
+			<string>C190</string>
+			<string>Road Partner</string>
+			<string>Tager</string>
+			<string>Vega</string>
+		</array>
+		<key>УАЗ</key>
+		<array>
+			<string>3151</string>
+			<string>3153</string>
+			<string>3159 Барс</string>
+			<string>3160</string>
+			<string>3162 Simbir</string>
+			<string>469</string>
+			<string>Hunter</string>
+			<string>Patriot</string>
+			<string>Pickup</string>
 		</array>
 	</dict>
 </dict>

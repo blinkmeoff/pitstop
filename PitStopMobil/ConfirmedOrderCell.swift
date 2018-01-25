@@ -17,7 +17,7 @@ protocol ConfirmedOrderCellDelegate {
 class ConfirmedOrderCell: BaseCell {
   
   var delegate: ConfirmedOrderCellDelegate?
-  
+  var menuBarConfirmedCell: MenuBarConfirmedCell?
   var confirmedOrder: ConfirmedOrder? {
     didSet {
       fetchOrder()
@@ -47,7 +47,7 @@ class ConfirmedOrderCell: BaseCell {
     didSet {
       guard let mainImage = order?.imageURLS?.components(separatedBy: ",") else { return }
       if !mainImage.isEmpty {
-        if let imageUrl = mainImage.first {
+        if let imageUrl = mainImage.first, imageUrl.count > 0 {
           activityIndicatorView.startAnimating()
           carProblemImageView.loadImage(urlString: imageUrl, completion: {
             self.activityIndicatorView.stopAnimating()
@@ -57,16 +57,19 @@ class ConfirmedOrderCell: BaseCell {
             }, completion: nil)
             
           })
+        } else {
+          carProblemImageView.image = #imageLiteral(resourceName: "placeholder")
+          carProblemImageView.alpha = 1
         }
       }
       
-      textView.text = order?.descriptionText
-      
+      let textViewAttrText = NSMutableAttributedString(string: "Описание: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)])
+      textViewAttrText.append(NSAttributedString(string: order?.descriptionText ?? "-", attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
+      textView.attributedText = textViewAttrText
       guard let creationDate = order?.creationDate.timeAgoDisplay() else { return }
       
       let attributedText = NSMutableAttributedString(string: "Созданна: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)])
       attributedText.append(NSAttributedString(string: creationDate, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
-      attributedText.append(NSAttributedString(string: "\nОписание:", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.black]))
       
       usernameLabel.attributedText = attributedText
       
@@ -97,6 +100,7 @@ class ConfirmedOrderCell: BaseCell {
     textView.font = UIFont.systemFont(ofSize: 12)
     textView.isScrollEnabled = false
     textView.isEditable = false
+    textView.isUserInteractionEnabled = false
     return textView
   }()
   
@@ -154,14 +158,16 @@ class ConfirmedOrderCell: BaseCell {
   
   lazy var confirmedButton: UIButton = {
     let button = UIButton(type: .system)
-    button.setImage(#imageLiteral(resourceName: "done").withRenderingMode(.alwaysOriginal), for: .normal)
-    button.imageView?.contentMode = .scaleAspectFill
-    button.contentVerticalAlignment = .fill
-    button.contentHorizontalAlignment = .fill
+    button.setImage(#imageLiteral(resourceName: "checkmark").withRenderingMode(.alwaysTemplate), for: .normal)
+    button.imageView?.contentMode = .scaleAspectFit
+    button.tintColor = .white
+    button.backgroundColor = Settings.Color.pink
+    button.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
     button.addTarget(self, action: #selector(sendFeedback), for: .touchUpInside)
     return button
   }()
   
+ 
   @objc private func sendFeedback() {
     delegate?.sendFeedback(cell: self)
   }
@@ -178,25 +184,25 @@ class ConfirmedOrderCell: BaseCell {
     activityIndicatorView.centerYAnchor.constraint(equalTo: carProblemImageView.centerYAnchor).isActive = true
     
     addSubview(confirmedButton)
-    confirmedButton.anchor(top: topAnchor, left: nil, bottom: nil, right: rightAnchor, paddingTop: 4, paddingLeft: 0, paddingBottom: 0, paddingRight: 12, width: 20, height: 20)
+    confirmedButton.anchor(top: topAnchor, left: nil, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 30, height: 0)
 
     
     addSubview(usernameLabel)
-    usernameLabel.anchor(top: topAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
-    
-    addSubview(textView)
-    textView.anchor(top: usernameLabel.bottomAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 4, paddingBottom: 0, paddingRight: 8, width: 0, height: 42)
+    usernameLabel.anchor(top: topAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: confirmedButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 20)
     
     addSubview(viewsLabel)
-    viewsLabel.anchor(top: nil, left: carProblemImageView.rightAnchor, bottom: separatorLine.topAnchor, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 30)
+    viewsLabel.anchor(top: nil, left: carProblemImageView.rightAnchor, bottom: separatorLine.topAnchor, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 25)
     
     addSubview(userProfileImageView)
     userProfileImageView.anchor(top: nil, left: viewsLabel.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 25, height: 25)
     userProfileImageView.centerYAnchor.constraint(equalTo: viewsLabel.centerYAnchor).isActive = true
     
     addSubview(mastersLabel)
-    mastersLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+    mastersLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 25)
     mastersLabel.centerYAnchor.constraint(equalTo: viewsLabel.centerYAnchor).isActive = true
+    
+    addSubview(textView)
+    textView.anchor(top: usernameLabel.bottomAnchor, left: carProblemImageView.rightAnchor, bottom: userProfileImageView.topAnchor, right: confirmedButton.leftAnchor, paddingTop: 0, paddingLeft: 3, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
   }
   
 }

@@ -12,6 +12,12 @@ class LoadingIndicator: NSObject {
   
   static let shared = LoadingIndicator()
   
+  var indicatorText: String? {
+    didSet {
+      loadingLabel.text = indicatorText
+    }
+  }
+  
   let blackView = UIView()
   
   let blackCenteredView : UIView = {
@@ -39,7 +45,7 @@ class LoadingIndicator: NSObject {
     return label
   }()
   
-  func showLoadingIndicator() {
+  func show() {
     
     if let window = UIApplication.shared.keyWindow {
       
@@ -60,7 +66,7 @@ class LoadingIndicator: NSObject {
     }
   }
   
-  func hideLoadingIndicator() {
+  func hide() {
     UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
       self.blackCenteredView.alpha = 0
       self.blackView.alpha = 0

@@ -98,17 +98,19 @@ class FeedbackController: UIViewController {
     }
     
     let rating = ratingControl.rating
-    print(rating)
     guard let masterUID = confirmedOrder?.masterUID else { return }
     guard let orderUID = confirmedOrder?.orderUID else { return }
     guard let currentLoggedInUser = Auth.auth().currentUser?.uid else { return }
     guard let key = self.key else { return }
-    
+    LoadingIndicator.shared.show()
+
     let ref = Database.database().reference().child("feedbacks").child(masterUID).childByAutoId()
-    let values = ["client": currentLoggedInUser, "finishedDate": Date().timeIntervalSince1970, "rating": rating, "orderUID": orderUID, "comment": comment] as [String: Any]
+    let values = ["client": currentLoggedInUser, "finishedDate": Date().timeIntervalSince1970, "creationDate": Date().timeIntervalSince1970,"rating": rating, "orderUID": orderUID, "comment": comment] as [String: Any]
     ref.updateChildValues(values) { (err, reference) in
       if err != nil {
         print(err ?? "")
+        LoadingIndicator.shared.hide()
+        self.showAlert(with: "Не удалось оставить комментарий, попробуйте позже")
         return
       }
       //Successfully send feedback
@@ -117,6 +119,8 @@ class FeedbackController: UIViewController {
       orderRef.updateChildValues(["status": "completed"], withCompletionBlock: { (err, ref) in
         if err != nil {
           print(err ?? "")
+          LoadingIndicator.shared.hide()
+          self.showAlert(with: "Не удалось отметить заявку, как завершенную")
           return
         }
         
@@ -125,6 +129,8 @@ class FeedbackController: UIViewController {
         confirmedOrdersRef.removeValue(completionBlock: { (error, ref) in
           if error != nil {
             print(error ?? "")
+            LoadingIndicator.shared.hide()
+            self.showAlert(with: "Не удалось удалить заявку из подтвержденных")
             return
           }
           
@@ -132,10 +138,13 @@ class FeedbackController: UIViewController {
           openMasterOrder.removeValue(completionBlock: { (err, ref) in
             if err != nil {
               print(err ?? "")
+              LoadingIndicator.shared.hide()
+              self.showAlert(with: "Не удалось удалить заявку из открытых для мастера")
               return
             }
             
-            self.showAlert(with: "Спасибо за Ваш отзыв", completion: {
+              LoadingIndicator.shared.hide()
+              self.showAlert(with: "Спасибо за Ваш отзыв", completion: {
               self.handleDismiss()
             })
           })

@@ -18,19 +18,33 @@ class ApliedMasterCell: BaseCell {
   var delegate: MasterProfileHeaderDelegate?
   var apliedMasterCellDelegate: ApliedMasterCellDelegate?
   
-  var user: Master? {
+  var user: AppliedMaster? {
     didSet {
-      
-      guard let imageURL = user?.profileImageUrl else { return }
+      guard let master = user?.master else { return }
+      let imageURL = master.profileImageUrl
       userProfileImageView.loadImage(urlString: imageURL)
       
       setUsername()
+      setTextView()
     }
   }
   
+  private func setTextView() {
+    let comment = user?.comment ?? ""
+    if comment.isEmpty {
+      return
+    }
+    
+    let textViewAttrText = NSMutableAttributedString(string: "Комментарий мастера: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)])
+    textViewAttrText.append(NSAttributedString(string: comment, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
+    textView.attributedText = textViewAttrText
+  }
+  
   private func setUsername() {
-    guard let username = user?.username else { return }
-    guard let address = user?.address else { return }
+    guard let master = user?.master else { return }
+    let username = master.username
+    let address = master.address
+    
     let attrString = NSMutableAttributedString(string: "\(username)\n", attributes: [NSAttributedStringKey.foregroundColor: UIColor.black, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 15)])
     attrString.append(NSAttributedString(string: address, attributes: [NSAttributedStringKey.foregroundColor: UIColor.lightGray, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 13)]))
     usernameLabel.attributedText = attrString
@@ -80,6 +94,18 @@ class ApliedMasterCell: BaseCell {
     return button
   }()
   
+  let textView: UITextView = {
+    let textView = UITextView()
+    textView.textColor = .lightGray
+    //    label.numberOfLines = 3
+    textView.font = UIFont.systemFont(ofSize: 12)
+    textView.isScrollEnabled = false
+    textView.isEditable = false
+    textView.isUserInteractionEnabled = false
+    textView.backgroundColor = .clear
+    return textView
+  }()
+  
   let separatorLine: UIView = {
     let view = UIView()
     view.backgroundColor = UIColor(white: 0, alpha: 0.4)
@@ -87,18 +113,18 @@ class ApliedMasterCell: BaseCell {
   }()
   
   @objc private func handleConfirm() {
-    guard let uid = user?.uid else { return }
+    guard let uid = user?.master?.uid else { return }
     apliedMasterCellDelegate?.confirm(uid: uid, cell: self)
   }
   
   @objc private func handleSendMessage() {
-    guard let uid = user?.uid else { return }
-    guard let imageURL = user?.profileImageUrl else { return }
+    guard let uid = user?.master?.uid else { return }
+    guard let imageURL = user?.master?.profileImageUrl else { return }
     delegate?.showChatControllerForUser(uid: uid, profileImageUrl: imageURL)
   }
   
   @objc private func handleShowPhoneNumber() {
-    guard let phonenumber = user?.phoneNumber else { return }
+    guard let phonenumber = user?.master?.phoneNumber else { return }
     delegate?.didTapShowPhoneNumber(phone: phonenumber)
   }
   
@@ -117,13 +143,14 @@ class ApliedMasterCell: BaseCell {
     
     confirmButton.anchor(top: callButton.bottomAnchor, left: callButton.leftAnchor, bottom: nil, right: messageButton.rightAnchor, paddingTop: 8, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 30)
     
-    userProfileImageView.anchorCenterYToSuperview()
-    userProfileImageView.anchor(top: nil, left: leftAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 40, height: 40)
+    userProfileImageView.anchor(top: topAnchor, left: leftAnchor, bottom: nil, right: nil, paddingTop: 22, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 40, height: 40)
     
-    usernameLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: callButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+    usernameLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: callButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 84)
     usernameLabel.centerYAnchor.constraint(equalTo: userProfileImageView.centerYAnchor).isActive = true
     
     separatorLine.anchor(top: nil, left: leftAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 0, paddingRight: 0, width: 0, height: 0.75)
     
+    addSubview(textView)
+    textView.anchor(top: confirmButton.bottomAnchor, left: leftAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 4, paddingLeft: 10, paddingBottom: 4, paddingRight: 12, width: 0, height: 0)
   }
 }

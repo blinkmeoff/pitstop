@@ -13,17 +13,31 @@ class OrderCell: BaseCell {
   
   var masterHomeController: MasterHomeController?
   
+  var shouldBlink: Bool?
+  
   var order: Order? {
     didSet {
       guard let order = order else {
         return
       }
+      
+      if order.masterApplied {
+        backgroundColor = UIColor(red: 0.973, green: 1.000, blue: 0.671, alpha: 0.8)
+        if shouldBlink == nil {
+          startBlinking()
+        } else {
+          backgroundColor = .clear
+        }
+      } else {
+        backgroundColor = .clear
+      }
+      
       guard let profileImageUrl = order.clientProfileImageUrl else { return }
       userProfileImageView.loadImage(urlString: profileImageUrl)
       
       guard let mainImage = order.imageURLS?.components(separatedBy: ",") else { return }
       if !mainImage.isEmpty {
-        if let imageUrl = mainImage.first {
+        if let imageUrl = mainImage.first, imageUrl.count > 0 {
           activityIndicatorView.startAnimating()
           carProblemImageView.loadImage(urlString: imageUrl, completion: {
             self.activityIndicatorView.stopAnimating()
@@ -33,6 +47,9 @@ class OrderCell: BaseCell {
             }, completion: nil)
             
           })
+        } else {
+          carProblemImageView.image = #imageLiteral(resourceName: "placeholder")
+          carProblemImageView.alpha = 1
         }
       }
       
@@ -45,17 +62,33 @@ class OrderCell: BaseCell {
       
       usernameLabel.attributedText = attributedText
       
-      textView.text = order.descriptionText
+      let textViewAttrText = NSMutableAttributedString(string: "Описание: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.black])
+      textViewAttrText.append(NSAttributedString(string: order.descriptionText ?? "-", attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
+      textView.attributedText = textViewAttrText
     }
+  }
+  
+  private func startBlinking() {
+    
+    let animation = CABasicAnimation(keyPath: "opacity")
+    animation.fromValue = 1
+    animation.toValue = 0.4
+    animation.duration = 1
+    animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+    animation.autoreverses = true
+    animation.repeatCount = Float.infinity
+    
+    self.layer.add(animation, forKey: "blinkAnimation")
   }
   
   let textView: UITextView = {
     let textView = UITextView()
     textView.textColor = .lightGray
-//    label.numberOfLines = 3
+    textView.backgroundColor = .clear
     textView.isUserInteractionEnabled = true
     textView.font = UIFont.systemFont(ofSize: 11)
     textView.isScrollEnabled = false
+    textView.isUserInteractionEnabled = false
     textView.isEditable = false
     return textView
   }()
@@ -122,13 +155,11 @@ class OrderCell: BaseCell {
   
   override func setupUI() {
     super.setupUI()
-    
     addSubview(separatorLine)
     separatorLine.anchor(top: nil, left: leftAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 0, paddingBottom: 1, paddingRight: 0, width: 0, height: 2)
-    
     addSubview(carProblemImageView)
     addSubview(activityIndicatorView)
-    carProblemImageView.anchor(top: topAnchor, left: leftAnchor, bottom: separatorLine.topAnchor, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 1, paddingRight: 0, width: 100, height: 0)
+    carProblemImageView.anchor(top: topAnchor, left: leftAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 1, paddingRight: 0, width: 100, height: 100)
     activityIndicatorView.centerXAnchor.constraint(equalTo: carProblemImageView.centerXAnchor).isActive = true
     activityIndicatorView.centerYAnchor.constraint(equalTo: carProblemImageView.centerYAnchor).isActive = true
     
@@ -136,11 +167,12 @@ class OrderCell: BaseCell {
     userProfileImageView.anchor(top: topAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: nil, paddingTop: 4, paddingLeft: 12, paddingBottom: 0, paddingRight: 0, width: 25, height: 25)
     
     addSubview(usernameLabel)
-    usernameLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 0)
+    usernameLabel.anchor(top: nil, left: userProfileImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 30)
     usernameLabel.centerYAnchor.constraint(equalTo: userProfileImageView.centerYAnchor).isActive = true
     
     addSubview(textView)
-    textView.anchor(top: nil, left: carProblemImageView.rightAnchor, bottom: separatorLine.topAnchor, right: rightAnchor, paddingTop: 8, paddingLeft: 12, paddingBottom: 0, paddingRight: 8, width: 0, height: 52)
+    textView.anchor(top: usernameLabel.bottomAnchor, left: carProblemImageView.rightAnchor, bottom: separatorLine.topAnchor, right: rightAnchor, paddingTop: 4, paddingLeft: 8, paddingBottom: 4, paddingRight: 8, width: 0, height: 0)
+    
     
   }
 }

@@ -13,6 +13,7 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
   
   let cellId = "cellId"
   let footerId = "footerId"
+  var appliedOrders = [String]()
   
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -20,16 +21,50 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
     collectionView?.backgroundColor = .white
     setupNavigationBarTitleView()
     setupCollectionView()
-    fetchOrders()
+    fetchMasterAppliedOrders()
+  }
+  
+  lazy var refreshControl: UIRefreshControl = {
+    let rc = UIRefreshControl()
+    rc.tintColor = .black
+    rc.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+    return rc
+  }()
+  
+  @objc func handleRefresh() {
+    appliedOrders.removeAll()
+    orders.removeAll()
+    ordersDictionary.removeAll()
+    fetchMasterAppliedOrders()
+  }
+  
+  
+  
+  private func fetchMasterAppliedOrders() {
+    guard let masterUID = Auth.auth().currentUser?.uid else { return }
+    let ref = Database.database().reference().child("master-applied-to-orders").child(masterUID)
+    
+    ref.observe(.value) { (snapshot) in
+      
+      if let dictionaries = snapshot.value as? [String: Any] {
+        for dictionary in dictionaries.keys {
+          self.appliedOrders.append(dictionary)
+        }
+      }
+      self.fetchOrders()
+      
+    }
   }
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
     tabBarController?.tabBar.isHidden = false
+    collectionView?.reloadData()
   }
   
   private func setupCollectionView() {
     collectionView?.alwaysBounceVertical = true
+    collectionView?.refreshControl = refreshControl
     collectionView?.register(OrderCell.self, forCellWithReuseIdentifier: cellId)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: footerId)
     collectionView?.contentInset = UIEdgeInsets(top: 4, left: 0, bottom: 0, right: 0)
@@ -44,8 +79,11 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
       
       guard let dictionary = snapshot.value as? [String: Any] else { return }
       
-      let order = Order(dictionary: dictionary)
+      let order = Order(dictionary: dictionary, masterApplied: false)
       if order.status == "pending" {
+        if self.appliedOrders.contains(where: {$0 == snapshot.key}) {
+          order.masterApplied = true
+        }
         self.ordersDictionary[snapshot.key] = order
       }
       
@@ -60,7 +98,7 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
   
   fileprivate func attemptReloadOfTable() {
     self.timer?.invalidate()
-    
+    self.refreshControl.endRefreshing()
     self.timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(self.handleReloadTable), userInfo: nil, repeats: false)
   }
   
@@ -89,7 +127,17 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: collectionView.frame.width, height: 100)
+    let frame = CGRect(x: 0, y: 0, width: collectionView.frame.width, height: 50)
+    
+    let dummyCell = OrderCell(frame: frame)
+    dummyCell.order = orders[indexPath.item]
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: collectionView.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(102, estimatedSize.height)
+    return CGSize(width: collectionView.frame.width, height: height)
   }
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -124,6 +172,8 @@ class MasterHomeController: UICollectionViewController, UICollectionViewDelegate
     let orderDetailsController = OrderDetailsController(collectionViewLayout: UICollectionViewFlowLayout())
     orderDetailsController.order = order
     orderDetailsController.key = foundKey
+    orderDetailsController.masterHomeController = self
+    orderDetailsController.item = indexPath.item
     let navController = UINavigationController(rootViewController: orderDetailsController)
     present(navController, animated: true, completion: nil)
   }

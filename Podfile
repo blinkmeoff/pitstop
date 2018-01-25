@@ -6,6 +6,7 @@ target 'PitStopMobil' do
   use_frameworks!
 
   # Pods for PitStopMobil
+       	 pod 'DatePickerDialog'
 	 pod 'GooglePlaces'
 	 pod 'GooglePlacePicker'
 	 pod 'GoogleMaps'
@@ -14,5 +15,6 @@ target 'PitStopMobil' do
  	 pod 'Firebase/Storage'
 	 pod 'LBTAComponents'
 	 pod 'Shimmer'
+	 pod 'Siren'
 	 pod 'Firebase/Messaging'
 end

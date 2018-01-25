@@ -150,6 +150,7 @@ class SMSCodeController: UIViewController, UITextFieldDelegate  {
     guard let fifthDigit = fifthDigitTextField.text else { return }
     guard let sixthDigit = sixthDigitTextField.text else { return }
     
+    
     let verificationCode = firstDigit + secondDigit + thirdDigit + fourthDigit + fifthDigit + sixthDigit
     
     let credential = PhoneAuthProvider.provider().credential(
@@ -157,30 +158,36 @@ class SMSCodeController: UIViewController, UITextFieldDelegate  {
       verificationCode: verificationCode)
     
     checkCodeButton.setTitle("", for: .normal)
+    checkCodeButton.isEnabled = false
     activityIndicatorView.startAnimating()
     
     Auth.auth().signIn(with: credential) { (user, error) in
       if error != nil {
         print(error?.localizedDescription ?? "")
         self.checkCodeButton.setTitle("Отправить", for: .normal)
+        self.checkCodeButton.isEnabled = true
         self.activityIndicatorView.stopAnimating()
         self.enterSMSCodeLabel.text = "Вы ввели неправильный код, попробуйте еще раз"
         self.enterSMSCodeLabel.textColor = .red
         return
       }
-      
+
       guard let uid = user?.uid else { return }
       
       let ref = Database.database().reference().child("users").child(uid)
       ref.observeSingleEvent(of: .value, with: { (snapshot) in
         if snapshot.exists() {
-          print("THIS NUMBER IS ALREADY EXISTS")
+          if let fcmToken = Messaging.messaging().fcmToken {
+            ref.updateChildValues(["fcmToken": fcmToken])
+          }
+          
           self.view.endEditing(true)
           self.handleSignInExistingUser()
         } else {
           if let phoneNumber = self.phoneNumber {
             self.presentClientOrMasterRegistrationProccess(phoneNumber: phoneNumber)
           }
+          
         }
       })
     }

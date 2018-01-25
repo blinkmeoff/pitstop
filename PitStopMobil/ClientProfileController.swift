@@ -40,6 +40,11 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
     setupTableView()
   }
   
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    tabBarController?.tabBar.isHidden = false
+  }
+  
   private func setupTableView() {
     tableView.separatorStyle = .singleLineEtched
     
@@ -74,9 +79,22 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
       self.present(navController, animated: true, completion: nil)
     }))
     
+    alertController.addAction(UIAlertAction(title: "Редактировать профиль", style: .default, handler: { (_) in
+      let editProfile = ClientEditProfile()
+      editProfile.client = self.client
+      self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+      self.navigationController?.navigationBar.tintColor = .black
+      self.navigationController?.pushViewController(editProfile, animated: true)
+    }))
+    
     alertController.addAction(UIAlertAction(title: "Выйти", style: .destructive, handler: { (_) in
       
       do {
+        if let uid = Auth.auth().currentUser?.uid {
+          let ref = Database.database().reference().child("users").child(uid)
+          ref.updateChildValues(["fcmToken": ""])
+        }
+        
         try Auth.auth().signOut()
         
         //what happens? we need to present some kind of login controller
@@ -90,6 +108,9 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
     }))
       
     alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
+    
+    let versionNumber = Bundle.applicationVersionNumber
+    alertController.title = "Версия \(versionNumber)"
     
     present(alertController, animated: true, completion: nil)
   }
@@ -110,7 +131,7 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
     }
   }
   
-  private func fetchCarsFor(uid: String) {
+  func fetchCarsFor(uid: String) {
     cars.removeAll()
     Database.database().reference().child("cars").child(uid).observe(.childAdded , with: { (snapshot) in
       
@@ -198,8 +219,6 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
 
 extension ClientProfileController: UICollectionViewDataSource,  UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
   
-  
-  
   func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
     let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: headerId, for: indexPath) as! ClientProfileHeader
     
@@ -237,6 +256,7 @@ extension ClientProfileController: UITableViewDataSource, UITableViewDelegate {
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: tableId, for: indexPath) as! ClientCarCell
     cell.car = cars[indexPath.row]
+    cell.selectionStyle = .none
     return cell
   }
   
@@ -245,19 +265,29 @@ extension ClientProfileController: UITableViewDataSource, UITableViewDelegate {
   }
   
   func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-    return 50
+    return 100
+  }
+  
+  func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    let car = cars[indexPath.row]
+    let updateCarController = UpdateCarController()
+    updateCarController.car = car
+    updateCarController.row = indexPath.row
+    updateCarController.clientProfileController = self
+    navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    navigationController?.navigationBar.tintColor = .black
+    navigationController?.pushViewController(updateCarController, animated: true)
   }
   
   @available(iOS 11.0, *)
   func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-    let action = UIContextualAction(style: .normal, title: "Details") { (action, view, completionHandler) in
+    let action = UIContextualAction(style: .normal, title: nil) { (action, view, completionHandler) in
       
       self.removeCarFromDB(indexPath: indexPath)
       completionHandler(true)
     }
     
     action.image = #imageLiteral(resourceName: "remove")
-    action.title = "Delete"
     action.backgroundColor = .clear
     let configuration = UISwipeActionsConfiguration(actions: [action])
     return configuration

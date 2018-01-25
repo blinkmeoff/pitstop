@@ -15,6 +15,11 @@ struct Car {
   var mark: String
   var model: String
   var models: [String]?
+  var year: String?
+  var vin: String?
+  var about: String?
+  var firstImage: String?
+  var secondImage: String?
   
   init(mark: String, model: String, models: [String]? = nil, id: String? = nil) {
     self.id = id
@@ -27,6 +32,11 @@ struct Car {
     self.id = id
     self.mark = dictionary["mark"] as? String ?? ""
     self.model = dictionary["model"] as? String ?? ""
+    self.year = dictionary["year"] as? String ?? ""
+    self.vin = dictionary["vin"] as? String ?? ""
+    self.about = dictionary["about"] as? String ?? ""
+    self.firstImage = dictionary["firstImage"] as? String ?? ""
+    self.secondImage = dictionary["secondImage"] as? String ?? ""
   }
   
 }

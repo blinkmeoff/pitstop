@@ -119,6 +119,8 @@ class LoginController: UIViewController, UITextFieldDelegate {
     let ukraineNumber = "+380" + phoneNumber
     
     receiveSMSCodeButton.setTitle("", for: .normal)
+    receiveSMSCodeButton.isEnabled = false
+    phoneNumberTextField.resignFirstResponder()
     activityIndicatorView.startAnimating()
     
     PhoneAuthProvider.provider().verifyPhoneNumber(ukraineNumber, uiDelegate: nil) { (verificationID, error) in
@@ -127,6 +129,7 @@ class LoginController: UIViewController, UITextFieldDelegate {
         self.showMessagePrompt(error.localizedDescription)
         self.phoneNumberTextField.text = ""
         self.receiveSMSCodeButton.setTitle("Получить код", for: .normal)
+        self.receiveSMSCodeButton.isEnabled = true
         self.activityIndicatorView.stopAnimating()
         return
       }
@@ -137,9 +140,6 @@ class LoginController: UIViewController, UITextFieldDelegate {
       
       //save auth id
       self.saveAuthVerificationId(verificationId)
-      
-      self.receiveSMSCodeButton.setTitle("Получить код", for: .normal)
-      self.activityIndicatorView.stopAnimating()
       
       self.presentSMSVerificationController(phoneNumber: ukraineNumber)
     }
@@ -153,6 +153,9 @@ class LoginController: UIViewController, UITextFieldDelegate {
     let smsCodeController = SMSCodeController()
     smsCodeController.phoneNumber = phoneNumber
     smsCodeController.isClient = true
+    self.receiveSMSCodeButton.setTitle("Получить код", for: .normal)
+    self.receiveSMSCodeButton.isEnabled = true
+    self.activityIndicatorView.stopAnimating()
     
     navigationController?.pushViewController(smsCodeController, animated: true)
   }

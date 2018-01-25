@@ -14,6 +14,8 @@ class NewOrderInfoController: UIViewController {
   var selectedSkills = [String]()
   var selectedImages = [UIImage]()
   
+  var car: Car?
+  
   var client: Client?
   
   lazy var firstImageToChoose: UIImageView = {
@@ -110,15 +112,49 @@ class NewOrderInfoController: UIViewController {
   var imageIndex = 1
   
   @objc func handlePickImage(touch: UITapGestureRecognizer) {
-    let imagePicker = UIImagePickerController()
-    imagePicker.allowsEditing = true
-    imagePicker.delegate = self
-    
     if let tag = touch.view?.tag {
       imageIndex = tag
-      present(imagePicker, animated: true, completion: nil)
+      showMediaOptions()
+    }
+  }
+  
+  func showMediaOptions() {
+    
+    let mediaOptions = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+    
+    let cameraOption = UIAlertAction(title: "Сделать фото", style: .default) { (action) in
+      self.openCamera()
     }
     
+    let galleryOption = UIAlertAction(title: "Выбрать из галереи", style: .default) { (action) in
+      self.openPhotos()
+    }
+    
+    let cancelAction = UIAlertAction(title: "Отмена", style: .cancel, handler: .none)
+    
+    mediaOptions.addAction(cameraOption)
+    mediaOptions.addAction(galleryOption)
+    mediaOptions.addAction(cancelAction)
+    
+    self.present(mediaOptions, animated: true, completion: .none)
+  }
+  
+  func openCamera() {
+    let imagePicker = UIImagePickerController()
+    imagePicker.allowsEditing = true
+    imagePicker.sourceType = .camera
+    imagePicker.delegate = self
+    
+    self.present(imagePicker, animated: true, completion: .none)
+  }
+  
+  func openPhotos() {
+    let imagePicker = UIImagePickerController()
+    imagePicker.allowsEditing = true
+    imagePicker.sourceType = .photoLibrary
+    imagePicker.delegate = self
+    
+    self.present(imagePicker, animated: true, completion: .none)
   }
   
   let problemLabel: UILabel = {
@@ -165,26 +201,34 @@ class NewOrderInfoController: UIViewController {
     }
     
     guard let uid = Auth.auth().currentUser?.uid else { return }
-    LoadingIndicator.shared.showLoadingIndicator()
+    LoadingIndicator.shared.show()
     
     //upload images to firebase storage first
     uploadImages(userId: uid, imagesArray: selectedImages) { (imagesURL) in
       
       //create order node
       let userPostRef = Database.database().reference().child("orders").childByAutoId()
-      let imageUrl = self.createString(array: imagesURL)
+      
       let skills = self.createString(array: self.selectedSkills)
       let clientName = client.username
       let profileImageUrl = client.profileImageUrl
       
-      let values = ["imageUrls": imageUrl, "skills": skills, "description": text, "ownerId": uid, "creationDate": Date().timeIntervalSince1970, "clientName": clientName, "clientProfileImageUrl": profileImageUrl, "status": "pending"] as [String : Any]
-
+      var values = ["skills": skills, "description": text, "ownerId": uid, "creationDate": Date().timeIntervalSince1970, "clientName": clientName, "clientProfileImageUrl": profileImageUrl, "status": "pending"] as [String : Any]
       
+      if let imagesURL = imagesURL {
+        let imageUrls = self.createString(array: imagesURL)
+        values["imageUrls"] = imageUrls
+      }
+      
+      if let carId = self.car?.id {
+        values["carId"] = carId
+      }
+
       userPostRef.updateChildValues(values) { (err, ref) in
         if let err = err {
           print("Failed to save post to DB", err)
           self.showAlert(with: "Произошла ошибка")
-          LoadingIndicator.shared.hideLoadingIndicator()
+          LoadingIndicator.shared.hide()
           return
         }
         
@@ -193,7 +237,7 @@ class NewOrderInfoController: UIViewController {
         userOrderRef.updateChildValues([orderId: 1])
         
         print("Successfully saved post to DB")
-        LoadingIndicator.shared.hideLoadingIndicator()
+        LoadingIndicator.shared.hide()
         self.presentSuccessAlert()
         
       }
@@ -209,12 +253,16 @@ class NewOrderInfoController: UIViewController {
     present(alertController, animated: true, completion: nil)
   }
   
-  func uploadImages(userId: String, imagesArray : [UIImage], completionHandler: @escaping ([String]) -> ()){
+  func uploadImages(userId: String, imagesArray : [UIImage], completionHandler: @escaping ([String]?) -> ()){
     let storage = Storage.storage()
     
     var uploadedImageUrlsArray = [String]()
     var uploadCount = 0
     let imagesCount = imagesArray.count
+    
+    if imagesArray.isEmpty {
+      completionHandler(nil)
+    }
     
     for image in imagesArray {
       
@@ -300,7 +348,7 @@ class NewOrderInfoController: UIViewController {
   }
   
   @objc private func handlePop() {
-    _ = navigationController?.popToRootViewController(animated: true)
+    _ = navigationController?.popViewController(animated: true)
   }
   
   private func setupUI() {

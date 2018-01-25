@@ -206,7 +206,7 @@ class UserSearchController: UIViewController, UICollectionViewDelegateFlowLayout
     print("Fetching users..")
     
     let ref = Database.database().reference().child("users")
-    ref.observeSingleEvent(of: .value, with: { (snapshot) in
+    ref.observe(.value, with: { (snapshot) in
       guard let dictionaries = snapshot.value as? [String: Any] else { return }
       
       dictionaries.forEach({ (key, value) in

@@ -38,6 +38,7 @@ class CityPickerController: UICollectionViewController, UICollectionViewDelegate
                 "Черновицкая область"]
   
   var masterDetailsController: MasterDetailsController?
+  var masterEditController: MasterEditProfileController?
   
   lazy var searchBar: UISearchBar = {
     let sb = UISearchBar()
@@ -99,6 +100,8 @@ class CityPickerController: UICollectionViewController, UICollectionViewDelegate
     
     let city = filteredCities[indexPath.item]
     masterDetailsController?.cityTextField.text = city
+    masterEditController?.cityTextField.text = city
+    masterDetailsController?.handleTextInputChange()
     dismiss(animated: true, completion: nil)
   }
   

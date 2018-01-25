@@ -51,6 +51,7 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     view.backgroundColor = .white
     self.navigationController?.navigationBar.tintColor = .red
 
+    activityIndicatorView.startAnimating()
     setupNavigationBarTitleView()
     
     if Auth.auth().currentUser == nil {
@@ -60,6 +61,61 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     }
     
     setupViewControllers()
+    isConnectedToTheInternet()
+    setupUI()
+  }
+  
+  let activityIndicatorView: UIActivityIndicatorView = {
+    let aiv = UIActivityIndicatorView()
+    aiv.activityIndicatorViewStyle = .gray
+    aiv.hidesWhenStopped = true
+    return aiv
+  }()
+  
+  func setupUI() {
+    view.addSubview(noConnectionLabel)
+    noConnectionLabel.anchor(top: view.topAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingTop: 0, paddingLeft: 20, paddingBottom: 0, paddingRight: 20, width: 0, height: 0)
+    
+    view.addSubview(activityIndicatorView)
+    activityIndicatorView.fillSuperview()
+  }
+  
+  let noConnectionLabel: UILabel = {
+    let label = UILabel()
+    let attrString = NSMutableAttributedString(attributedString: NSAttributedString(string: "Отсутствует доступ к интернету\n\n", attributes: [NSAttributedStringKey.foregroundColor: UIColor.black, NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17)]))
+    attrString.append(NSAttributedString(string: "Пожалуйста, проверьте подключение", attributes: [NSAttributedStringKey.foregroundColor: UIColor.lightGray, NSAttributedStringKey.font: UIFont.systemFont(ofSize: 14)]))
+    label.attributedText = attrString
+    label.isHidden = true
+    label.numberOfLines = 0
+    label.textAlignment = .center
+    return label
+  }()
+  
+  func noInternetConnection() {
+    noConnectionLabel.isHidden = false
+    activityIndicatorView.stopAnimating()
+  }
+  
+  func isConnectedToTheInternet() {
+    let reachability = Reachability()!
+    
+    reachability.whenReachable = { reachability in
+      if reachability.connection == .wifi {
+        print("Reachable via WiFi")
+      } else {
+        print("Reachable via Cellular")
+      }
+    }
+    reachability.whenUnreachable = { _ in
+      print("Not reachable")
+      self.noInternetConnection()
+    }
+    
+    do {
+      try reachability.startNotifier()
+    } catch {
+      print("Unable to start notifier")
+    }
   }
   
   fileprivate func userIsNotAuthorized() {
@@ -79,6 +135,7 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
   func setupViewControllers(completed: ((Bool) -> ())? = nil) {
     guard let uid = Auth.auth().currentUser?.uid else { return }
     let ref = Database.database().reference().child("users").child(uid)
+    
     ref.observeSingleEvent(of: .value, with: { (snapshot) in
       guard let dictionary = snapshot.value as? [String: Any] else {
         self.userIsNotAuthorized()
@@ -86,8 +143,11 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
         return
       }
       
+      self.noConnectionLabel.isHidden = true
+      self.activityIndicatorView.stopAnimating()
+      
       if dictionary["isClient"] as? Int == 1 {
-        self.isClient = true 
+        self.isClient = true
         self.setupClientViewControllers()
       } else {
         self.isClient = false
@@ -95,7 +155,11 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
       }
       
       completed?(true)
-    })
+    }) { (err) in
+      print(err)
+      return
+    }
+    
   }
   
   fileprivate func setupMasterViewControllers() {
@@ -103,7 +167,7 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     let homeNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "master_main_gray"), selectedImage: #imageLiteral(resourceName: "master_main_black"), rootViewController: MasterHomeController(collectionViewLayout: UICollectionViewFlowLayout()))
     
     //search
-    let messageNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "messages_gray"), selectedImage: #imageLiteral(resourceName: "messages_black"), rootViewController: MessagesController(collectionViewLayout: UICollectionViewFlowLayout()))
+    let messageNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "messages_gray"), selectedImage: #imageLiteral(resourceName: "messages_black"), rootViewController: MessagesController())
     
     //user profile
     
@@ -134,9 +198,9 @@ class MainTabBarController: UITabBarController, UITabBarControllerDelegate {
     
     let jobsNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "master_main_gray"), selectedImage: #imageLiteral(resourceName: "master_main_black"), rootViewController: ClientOrdersController())
     
-    let plusNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "plus_unselected"), selectedImage: #imageLiteral(resourceName: "plus_unselected"), rootViewController: NewOrderController())
+    let plusNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "plus"), selectedImage: #imageLiteral(resourceName: "plus"), rootViewController: NewOrderController())
     
-    let messagesNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "messages_gray"), selectedImage: #imageLiteral(resourceName: "messages_black"), rootViewController: MessagesController(collectionViewLayout: UICollectionViewFlowLayout()))
+    let messagesNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "messages_gray"), selectedImage: #imageLiteral(resourceName: "messages_black"), rootViewController: MessagesController())
     
     //user profile
     let userProfileNavController = templateNavController(unselectedImage: #imageLiteral(resourceName: "profile_gray"), selectedImage: #imageLiteral(resourceName: "profile_black"), rootViewController: ClientProfileController())

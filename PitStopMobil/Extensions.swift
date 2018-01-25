@@ -8,6 +8,36 @@
 
 import UIKit
 
+extension Bundle {
+  
+  class var applicationVersionNumber: String {
+    if let versionNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+      return versionNumber
+    } else {
+      return "Application version is not available"
+    }
+  }
+  
+}
+
+import UIKit
+
+extension UINavigationController {
+  
+  func popViewController(animated: Bool = true, completion: @escaping () -> Void) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    popViewController(animated: animated)
+    CATransaction.commit()
+  }
+  
+  func pushViewController(_ viewController: UIViewController, animated: Bool = true, completion: @escaping () -> Void) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
+    pushViewController(viewController, animated: animated)
+    CATransaction.commit()
+  }
+}
 
 
 extension UIViewController {
@@ -88,7 +118,15 @@ extension Date {
     let formattedDateString = dateFormatter.string(from: timestampDate)
     return formattedDateString
   }
+  
+  func dateForMessage(_ format: String) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = format
     
+    let formattedDateString = dateFormatter.string(from: self)
+    return formattedDateString
+  }
+  
   func timeAgoDisplay() -> String {
     let secondsAgo = Int(Date().timeIntervalSince(self))
     
@@ -158,6 +196,8 @@ extension Date {
     
   }
 }
+
+
 
 extension UITextField {
   

@@ -11,6 +11,7 @@ import Firebase
 import GoogleMaps
 import GooglePlaces
 import UserNotifications
+import Siren
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
@@ -29,8 +30,33 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
     window?.rootViewController =  UINavigationController(rootViewController: MainTabBarController())
     
     attemptRegisterForNotifications(application: application)
-    
+    setupSiren()
     return true
+  }
+  
+  func setupSiren() {
+    let siren = Siren.shared
+    
+    siren.delegate = self
+    
+    siren.debugEnabled = true
+    siren.appName = Settings.appName
+    
+    siren.alertType = .skip
+    siren.majorUpdateAlertType = .skip
+    siren.minorUpdateAlertType = .skip
+    siren.patchUpdateAlertType = .skip
+    siren.forceLanguageLocalization = .russian
+  }
+  
+  func applicationWillEnterForeground(_ application: UIApplication) {
+    // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    Siren.shared.checkVersion(checkType: .immediately)
+  }
+  
+  func applicationDidBecomeActive(_ application: UIApplication) {
+    // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    Siren.shared.checkVersion(checkType: .daily)
   }
   
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String) {
@@ -65,7 +91,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
 
   func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     // Pass device token to auth
-    Auth.auth().setAPNSToken(deviceToken, type: AuthAPNSTokenType.sandbox)
+    Auth.auth().setAPNSToken(deviceToken, type: AuthAPNSTokenType.prod)
     
     // Further handling of the device token if needed by the app
     // ...
@@ -118,7 +144,46 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUser
 
     }
   }
-
+  
+  func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+    if Auth.auth().canHandle(url) {
+      return true
+    }
+    return false
+    // URL not auth related, developer should handle it.
+  }
 
 }
 
+
+
+extension AppDelegate: SirenDelegate {
+  func sirenDidShowUpdateDialog(alertType: Siren.AlertType) {
+    print(#function, alertType)
+  }
+  
+  func sirenUserDidCancel() {
+    print(#function)
+  }
+  
+  func sirenUserDidSkipVersion() {
+    print(#function)
+  }
+  
+  func sirenUserDidLaunchAppStore() {
+    print(#function)
+  }
+  
+  func sirenDidFailVersionCheck(error: Error) {
+    print(#function, error)
+  }
+  
+  func sirenLatestVersionInstalled() {
+    print(#function, "Latest version of app is installed")
+  }
+  
+  // This delegate method is only hit when alertType is initialized to .none
+  func sirenDidDetectNewVersionWithoutAlert(message: String, updateType: UpdateType) {
+    print(#function, "\(message).\nRelease type: \(updateType.rawValue.capitalized)")
+  }
+}

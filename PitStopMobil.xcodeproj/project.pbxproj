@@ -60,6 +60,16 @@
 		37997DC21F76D93800837593 /* MessagesCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37997DC11F76D93800837593 /* MessagesCell.swift */; };
 		37997DC41F77B86100837593 /* ChatInputContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37997DC31F77B86100837593 /* ChatInputContainerView.swift */; };
 		37997DC61F77B88A00837593 /* ChatMessageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37997DC51F77B88A00837593 /* ChatMessageCell.swift */; };
+		379D9B622014D98C00C1303B /* ClientEditProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B612014D98C00C1303B /* ClientEditProfile.swift */; };
+		379D9B642014DE5600C1303B /* UpdateCarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B632014DE5600C1303B /* UpdateCarController.swift */; };
+		379D9B662014FE9000C1303B /* YearPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B652014FE9000C1303B /* YearPickerView.swift */; };
+		379D9B68201529B500C1303B /* NewOrderCarChooseVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B67201529B500C1303B /* NewOrderCarChooseVC.swift */; };
+		379D9B6A20152BF000C1303B /* NewOrderCarChooseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B6920152BF000C1303B /* NewOrderCarChooseCell.swift */; };
+		379D9B6C20153EB800C1303B /* QuoteCommentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 379D9B6B20153EB800C1303B /* QuoteCommentController.swift */; };
+		37BCBBE120137D8E00E85CF8 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BCBBE020137D8E00E85CF8 /* Reachability.swift */; };
+		37BCBBE32013A62D00E85CF8 /* MasterEditProfileController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BCBBE22013A62D00E85CF8 /* MasterEditProfileController.swift */; };
+		37BCBBE52013E0C200E85CF8 /* Pitstopmobil_Logo_1024x1024px.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 37BCBBE42013E0C200E85CF8 /* Pitstopmobil_Logo_1024x1024px.jpg */; };
+		37BCBBE72013E67D00E85CF8 /* AboutInputTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BCBBE62013E67D00E85CF8 /* AboutInputTextView.swift */; };
 		37C26D0A1F66CABC00F5B71A /* MasterProfileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C26D091F66CABC00F5B71A /* MasterProfileCell.swift */; };
 		37C26D0E1F66CB1C00F5B71A /* MasterProfileHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C26D0D1F66CB1C00F5B71A /* MasterProfileHeader.swift */; };
 		37C26D141F6722F700F5B71A /* MasterHomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37C26D131F6722F700F5B71A /* MasterHomeController.swift */; };
@@ -133,6 +143,16 @@
 		37997DC11F76D93800837593 /* MessagesCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagesCell.swift; sourceTree = "<group>"; };
 		37997DC31F77B86100837593 /* ChatInputContainerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatInputContainerView.swift; sourceTree = "<group>"; };
 		37997DC51F77B88A00837593 /* ChatMessageCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatMessageCell.swift; sourceTree = "<group>"; };
+		379D9B612014D98C00C1303B /* ClientEditProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientEditProfile.swift; sourceTree = "<group>"; };
+		379D9B632014DE5600C1303B /* UpdateCarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateCarController.swift; sourceTree = "<group>"; };
+		379D9B652014FE9000C1303B /* YearPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YearPickerView.swift; sourceTree = "<group>"; };
+		379D9B67201529B500C1303B /* NewOrderCarChooseVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewOrderCarChooseVC.swift; sourceTree = "<group>"; };
+		379D9B6920152BF000C1303B /* NewOrderCarChooseCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewOrderCarChooseCell.swift; sourceTree = "<group>"; };
+		379D9B6B20153EB800C1303B /* QuoteCommentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteCommentController.swift; sourceTree = "<group>"; };
+		37BCBBE020137D8E00E85CF8 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
+		37BCBBE22013A62D00E85CF8 /* MasterEditProfileController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterEditProfileController.swift; sourceTree = "<group>"; };
+		37BCBBE42013E0C200E85CF8 /* Pitstopmobil_Logo_1024x1024px.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Pitstopmobil_Logo_1024x1024px.jpg; sourceTree = "<group>"; };
+		37BCBBE62013E67D00E85CF8 /* AboutInputTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutInputTextView.swift; sourceTree = "<group>"; };
 		37C26D091F66CABC00F5B71A /* MasterProfileCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterProfileCell.swift; sourceTree = "<group>"; };
 		37C26D0D1F66CB1C00F5B71A /* MasterProfileHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterProfileHeader.swift; sourceTree = "<group>"; };
 		37C26D131F6722F700F5B71A /* MasterHomeController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterHomeController.swift; sourceTree = "<group>"; };
@@ -170,6 +190,7 @@
 				371169161FEE847B00315BDD /* OrderDetailsController.swift */,
 				371169191FEE87C700315BDD /* OrderDetailsCell.swift */,
 				3711691B1FEE87F600315BDD /* OrderImageCell.swift */,
+				379D9B6B20153EB800C1303B /* QuoteCommentController.swift */,
 			);
 			name = Order;
 			sourceTree = "<group>";
@@ -196,6 +217,7 @@
 				376BCD941F39F05D0006A999 /* LaunchScreen.storyboard */,
 				37E8D7761F653DCB00B1CA6B /* GoogleService-Info.plist */,
 				37128B621F596C0D0061B26C /* Assets.xcassets */,
+				37BCBBE42013E0C200E85CF8 /* Pitstopmobil_Logo_1024x1024px.jpg */,
 				376BCDA71F39F5550006A999 /* PitStopMobil.entitlements */,
 				376BCD971F39F05D0006A999 /* Info.plist */,
 				37E8D7601F63E3E200B1CA6B /* Cars.plist */,
@@ -235,6 +257,9 @@
 				376A2FC91F718BD80016E1A3 /* ClientProfileController.swift */,
 				376A2FCC1F718BEE0016E1A3 /* ClientCarCell.swift */,
 				376A2FCE1F718BF80016E1A3 /* ClientProfileHeader.swift */,
+				379D9B612014D98C00C1303B /* ClientEditProfile.swift */,
+				379D9B632014DE5600C1303B /* UpdateCarController.swift */,
+				379D9B652014FE9000C1303B /* YearPickerView.swift */,
 			);
 			name = UserProfile;
 			sourceTree = "<group>";
@@ -305,6 +330,8 @@
 				371169211FEEC35100315BDD /* MenuBar */,
 				3778B2AD1F780437009DF036 /* ClientOrdersController.swift */,
 				3778B2AF1F780519009DF036 /* NewOrderController.swift */,
+				379D9B67201529B500C1303B /* NewOrderCarChooseVC.swift */,
+				379D9B6920152BF000C1303B /* NewOrderCarChooseCell.swift */,
 				37734EEF1FCB0EE50027868C /* NewOrderInfoController.swift */,
 				371169261FEEDD9F00315BDD /* ApliedMastersController.swift */,
 				371169281FEEF10300315BDD /* ApliedMasterCell.swift */,
@@ -318,6 +345,7 @@
 				37837C941F5F298D00D2121C /* MasterProfileController.swift */,
 				37C26D091F66CABC00F5B71A /* MasterProfileCell.swift */,
 				37C26D0D1F66CB1C00F5B71A /* MasterProfileHeader.swift */,
+				37BCBBE22013A62D00E85CF8 /* MasterEditProfileController.swift */,
 			);
 			name = UserProfile;
 			sourceTree = "<group>";
@@ -327,6 +355,8 @@
 			children = (
 				37837C9B1F5F346800D2121C /* LoadingIndicator.swift */,
 				376A2FD21F7192720016E1A3 /* AlertHelper.swift */,
+				37BCBBE020137D8E00E85CF8 /* Reachability.swift */,
+				37BCBBE62013E67D00E85CF8 /* AboutInputTextView.swift */,
 			);
 			name = Helpers;
 			path = ..;
@@ -527,6 +557,7 @@
 				376BCD961F39F05D0006A999 /* LaunchScreen.storyboard in Resources */,
 				37E8D7611F63E3E200B1CA6B /* Cars.plist in Resources */,
 				37E8D7771F653DCB00B1CA6B /* GoogleService-Info.plist in Resources */,
+				37BCBBE52013E0C200E85CF8 /* Pitstopmobil_Logo_1024x1024px.jpg in Resources */,
 				37128B631F596C0D0061B26C /* Assets.xcassets in Resources */,
 				376BCD911F39F05D0006A999 /* Main.storyboard in Resources */,
 			);
@@ -580,21 +611,25 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-PitStopMobil/Pods-PitStopMobil-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/DatePickerDialog/DatePickerDialog.framework",
 				"${BUILT_PRODUCTS_DIR}/GTMSessionFetcher/GTMSessionFetcher.framework",
 				"${BUILT_PRODUCTS_DIR}/GoogleToolboxForMac/GoogleToolboxForMac.framework",
 				"${BUILT_PRODUCTS_DIR}/LBTAComponents/LBTAComponents.framework",
 				"${BUILT_PRODUCTS_DIR}/Protobuf/Protobuf.framework",
 				"${BUILT_PRODUCTS_DIR}/Shimmer/Shimmer.framework",
+				"${BUILT_PRODUCTS_DIR}/Siren/Siren.framework",
 				"${BUILT_PRODUCTS_DIR}/leveldb-library/leveldb.framework",
 				"${BUILT_PRODUCTS_DIR}/nanopb/nanopb.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/DatePickerDialog.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMSessionFetcher.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GoogleToolboxForMac.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/LBTAComponents.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Protobuf.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Shimmer.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Siren.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/leveldb.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/nanopb.framework",
 			);
@@ -620,6 +655,7 @@
 				37997DC01F76D54600837593 /* Message.swift in Sources */,
 				37939D911FD4A49A004364DE /* Order.swift in Sources */,
 				37997DC21F76D93800837593 /* MessagesCell.swift in Sources */,
+				379D9B622014D98C00C1303B /* ClientEditProfile.swift in Sources */,
 				37837C991F5F2F6300D2121C /* MasterDetailsController.swift in Sources */,
 				37734EF01FCB0EE50027868C /* NewOrderInfoController.swift in Sources */,
 				3711691E1FEE9F7000315BDD /* PendingOrderCell.swift in Sources */,
@@ -627,13 +663,16 @@
 				371169201FEEC30000315BDD /* MenuBar.swift in Sources */,
 				371169171FEE847B00315BDD /* OrderDetailsController.swift in Sources */,
 				371169271FEEDD9F00315BDD /* ApliedMastersController.swift in Sources */,
+				379D9B6C20153EB800C1303B /* QuoteCommentController.swift in Sources */,
 				376A2FD81F7197790016E1A3 /* UserSearchCell.swift in Sources */,
+				37BCBBE120137D8E00E85CF8 /* Reachability.swift in Sources */,
 				376A2FD11F718E0B0016E1A3 /* Client.swift in Sources */,
 				376BCDA61F39F4670006A999 /* SignUpController.swift in Sources */,
 				376A2FCF1F718BF80016E1A3 /* ClientProfileHeader.swift in Sources */,
 				371169231FEEC36100315BDD /* MenuBarPendingCell.swift in Sources */,
 				376BCD8E1F39F05D0006A999 /* MainTabBarController.swift in Sources */,
 				3742FEC81FF2B1CD007F805B /* Feedback.swift in Sources */,
+				37BCBBE32013A62D00E85CF8 /* MasterEditProfileController.swift in Sources */,
 				37E8D7691F63F44000B1CA6B /* CarMarkPickerCell.swift in Sources */,
 				37E8D7671F63ECA500B1CA6B /* Car.swift in Sources */,
 				37E8D7641F63EBA700B1CA6B /* CarMarkPickerController.swift in Sources */,
@@ -646,6 +685,7 @@
 				37E8D76B1F63FD3800B1CA6B /* CarModelPickerController.swift in Sources */,
 				3742FEBF1FF27B0E007F805B /* FavoritesController.swift in Sources */,
 				379796D51F659FDC00D48364 /* FirebaseUtils.swift in Sources */,
+				379D9B662014FE9000C1303B /* YearPickerView.swift in Sources */,
 				37E8D7701F652E7200B1CA6B /* CityPickerController.swift in Sources */,
 				3742FEC11FF27C6E007F805B /* FavoritesCell.swift in Sources */,
 				3711691A1FEE87C700315BDD /* OrderDetailsCell.swift in Sources */,
@@ -656,12 +696,15 @@
 				37997DC41F77B86100837593 /* ChatInputContainerView.swift in Sources */,
 				376BCDA11F39F41A0006A999 /* LoginController.swift in Sources */,
 				376BCD8C1F39F05D0006A999 /* AppDelegate.swift in Sources */,
+				379D9B6A20152BF000C1303B /* NewOrderCarChooseCell.swift in Sources */,
+				379D9B68201529B500C1303B /* NewOrderCarChooseVC.swift in Sources */,
 				37C26D0A1F66CABC00F5B71A /* MasterProfileCell.swift in Sources */,
 				377A7E391FEE80A1007D3EBA /* ZoomView.swift in Sources */,
 				371169251FEEC3B500315BDD /* MenuBarConfirmedCell.swift in Sources */,
 				37E9A5DD1F5F003C00BDF214 /* SMSCodeController.swift in Sources */,
 				3742FEC41FF289FE007F805B /* FeedbackController.swift in Sources */,
 				37997DBC1F76C84300837593 /* ChatLogController.swift in Sources */,
+				379D9B642014DE5600C1303B /* UpdateCarController.swift in Sources */,
 				376A2FD61F7197530016E1A3 /* UserSearchController.swift in Sources */,
 				37734EEB1FCAD7930027868C /* Settings.swift in Sources */,
 				37997DC61F77B88A00837593 /* ChatMessageCell.swift in Sources */,
@@ -670,6 +713,7 @@
 				371169291FEEF10300315BDD /* ApliedMasterCell.swift in Sources */,
 				37C26D141F6722F700F5B71A /* MasterHomeController.swift in Sources */,
 				376A2FD31F7192720016E1A3 /* AlertHelper.swift in Sources */,
+				37BCBBE72013E67D00E85CF8 /* AboutInputTextView.swift in Sources */,
 				376BCDA41F39F4510006A999 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

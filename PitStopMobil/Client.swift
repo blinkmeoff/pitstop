@@ -16,6 +16,7 @@ struct Client {
   let carMark: String
   let carModel: String
   let phoneNumber: String
+  let email: String?
   
   
   init(uid: String, dictionary: [String: Any]) {
@@ -25,6 +26,7 @@ struct Client {
     self.carMark = dictionary["carMark"] as? String ?? ""
     self.carModel = dictionary["carModel"] as? String ?? ""
     self.phoneNumber = dictionary["phoneNumber"] as? String ?? ""
+    self.email = dictionary["email"] as? String ?? ""
   }
   
   init(dictionary: [String: Any]) {
@@ -34,5 +36,6 @@ struct Client {
     self.carMark = dictionary["carMark"] as? String ?? ""
     self.carModel = dictionary["carModel"] as? String ?? ""
     self.phoneNumber = dictionary["phoneNumber"] as? String ?? ""
+    self.email = dictionary["email"] as? String ?? ""
   }
 }

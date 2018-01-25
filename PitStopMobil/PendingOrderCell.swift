@@ -19,8 +19,6 @@ class PendingOrderCell: BaseCell {
   
   var delegate: PendingOrderCellDelegate?
   
-
-  
   var order: Order? {
     didSet {
       guard let order = order else {
@@ -31,8 +29,9 @@ class PendingOrderCell: BaseCell {
       
       guard let mainImage = order.imageURLS?.components(separatedBy: ",") else { return }
       if !mainImage.isEmpty {
-        if let imageUrl = mainImage.first {
+        if let imageUrl = mainImage.first, imageUrl.count > 0 {
           activityIndicatorView.startAnimating()
+  
           carProblemImageView.loadImage(urlString: imageUrl, completion: {
             self.activityIndicatorView.stopAnimating()
             
@@ -41,6 +40,9 @@ class PendingOrderCell: BaseCell {
             }, completion: nil)
             
           })
+        } else {
+          carProblemImageView.image = #imageLiteral(resourceName: "placeholder")
+          carProblemImageView.alpha = 1
         }
       }
       
@@ -49,11 +51,13 @@ class PendingOrderCell: BaseCell {
       
       let attributedText = NSMutableAttributedString(string: "Созданна: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)])
       attributedText.append(NSAttributedString(string: creationDate, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
-      attributedText.append(NSAttributedString(string: "\nОписание:", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.black]))
+      
       
       usernameLabel.attributedText = attributedText
       
-      textView.text = order.descriptionText
+      let textViewAttrText = NSMutableAttributedString(string: "Описание: ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)])
+      textViewAttrText.append(NSAttributedString(string: order.descriptionText ?? "-", attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 11), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
+      textView.attributedText = textViewAttrText
       setupMastersLabel(text: order.mastersAppliedCount)
       setupViewsCount(text: order.views)
     }
@@ -82,6 +86,8 @@ class PendingOrderCell: BaseCell {
     textView.font = UIFont.systemFont(ofSize: 12)
     textView.isScrollEnabled = false
     textView.isEditable = false
+    textView.isUserInteractionEnabled = false
+    textView.backgroundColor = .clear
     return textView
   }()
   
@@ -153,7 +159,7 @@ class PendingOrderCell: BaseCell {
     
     addSubview(carProblemImageView)
     addSubview(activityIndicatorView)
-    carProblemImageView.anchor(top: topAnchor, left: leftAnchor, bottom: separatorLine.topAnchor, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 1, paddingRight: 0, width: 100, height: 0)
+    carProblemImageView.anchor(top: topAnchor, left: leftAnchor, bottom: nil, right: nil, paddingTop: 0, paddingLeft: 0, paddingBottom: 1, paddingRight: 0, width: 100, height: 100)
     activityIndicatorView.centerXAnchor.constraint(equalTo: carProblemImageView.centerXAnchor).isActive = true
     activityIndicatorView.centerYAnchor.constraint(equalTo: carProblemImageView.centerYAnchor).isActive = true
 
@@ -161,10 +167,8 @@ class PendingOrderCell: BaseCell {
     deleteButton.anchor(top: topAnchor, left: nil, bottom: nil, right: rightAnchor, paddingTop: 4, paddingLeft: 0, paddingBottom: 0, paddingRight: 12, width: 20, height: 20)
     
     addSubview(usernameLabel)
-    usernameLabel.anchor(top: topAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: deleteButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
+    usernameLabel.anchor(top: topAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: deleteButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 20)
     
-    addSubview(textView)
-    textView.anchor(top: usernameLabel.bottomAnchor, left: carProblemImageView.rightAnchor, bottom: nil, right: rightAnchor, paddingTop: 0, paddingLeft: 4, paddingBottom: 0, paddingRight: 8, width: 0, height: 42)
     
     let stackView = UIStackView(arrangedSubviews: [viewsLabel, mastersLabel])
     stackView.distribution = .fillEqually
@@ -172,7 +176,8 @@ class PendingOrderCell: BaseCell {
     addSubview(stackView)
     stackView.anchor(top: nil, left: carProblemImageView.rightAnchor, bottom: separatorLine.topAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 0, width: 0, height: 30)
     
-   
+    addSubview(textView)
+    textView.anchor(top: usernameLabel.bottomAnchor, left: carProblemImageView.rightAnchor, bottom: stackView.topAnchor, right: rightAnchor, paddingTop: 0, paddingLeft: 3, paddingBottom: 8, paddingRight: 8, width: 0, height: 0)
     
   }
   

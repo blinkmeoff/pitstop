@@ -17,6 +17,8 @@ class ActiveOrdersController: UICollectionViewController, UICollectionViewDelega
   let cellId = "cellId"
   let footerId = "footerId"
   
+  var userId: String?
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     navigationItem.title = "Заказы"
@@ -45,7 +47,7 @@ class ActiveOrdersController: UICollectionViewController, UICollectionViewDelega
   }
   
   private func fetchOrders() {
-    guard let uid = Auth.auth().currentUser?.uid else { return }
+    guard let uid = userId else { return }
 
     let ref = Database.database().reference().child("order-open-for-master").child(uid)
     ref.observe(.childAdded, with: { (snapshot) in
@@ -56,7 +58,7 @@ class ActiveOrdersController: UICollectionViewController, UICollectionViewDelega
       ref.observeSingleEvent(of: .value, with: { (snapshot) in
         guard let dictionary = snapshot.value as? [String: Any] else { return }
         
-        let order = Order(dictionary: dictionary)
+        let order = Order(dictionary: dictionary, masterApplied: true)
         if order.status == "confirmed" {
           self.ordersDictionary[snapshot.key] = order
         }
@@ -94,12 +96,24 @@ class ActiveOrdersController: UICollectionViewController, UICollectionViewDelega
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: collectionView.frame.width, height: 100)
+    let frame = CGRect(x: 0, y: 0, width: collectionView.frame.width, height: 50)
+    
+    let dummyCell = OrderCell(frame: frame)
+    dummyCell.order = orders[indexPath.item]
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: collectionView.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(102, estimatedSize.height)
+    return CGSize(width: collectionView.frame.width, height: height)
   }
   
   override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! OrderCell
+    cell.shouldBlink = false
     cell.order = orders[indexPath.item]
+    
     return cell
   }
   
@@ -127,6 +141,7 @@ class ActiveOrdersController: UICollectionViewController, UICollectionViewDelega
     
     let orderDetailsController = OrderDetailsController(collectionViewLayout: UICollectionViewFlowLayout())
     orderDetailsController.order = order
+    orderDetailsController.activeOrdersController = self
     orderDetailsController.key = foundKey
     let navController = UINavigationController(rootViewController: orderDetailsController)
     present(navController, animated: true, completion: nil)

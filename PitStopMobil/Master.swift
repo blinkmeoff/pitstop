@@ -19,6 +19,7 @@ struct Master {
   let latitude: Double
   let longitude: Double
   let isClient: Int
+  let about: String?
   
   init(uid: String, dictionary: [String: Any]) {
     self.uid = uid
@@ -30,6 +31,7 @@ struct Master {
     self.latitude = dictionary["latitude"] as? Double ?? 0
     self.longitude = dictionary["longitude"] as? Double ?? 0
     self.isClient = dictionary["isClient"] as? Int ?? 0
+    self.about = dictionary["about"] as? String ?? ""
   }
   
   init(dictionary: [String: Any]) {
@@ -42,5 +44,6 @@ struct Master {
     self.latitude = dictionary["latitude"] as? Double ?? 0
     self.longitude = dictionary["longitude"] as? Double ?? 0
     self.isClient = dictionary["isClient"] as? Int ?? 0
+    self.about = dictionary["about"] as? String ?? ""
   }
 }

@@ -12,7 +12,7 @@ import Firebase
 extension Database {
   
   static func fetchUserWithUID(uid: String, isMaster: Bool, completion: @escaping (Any) -> ()) {
-    Database.database().reference().child("users").child(uid).observeSingleEvent(of: .value, with: { (snapshot) in
+    Database.database().reference().child("users").child(uid).observe(.value, with: { (snapshot) in
       
       guard let userDictionary = snapshot.value as? [String: Any] else { return }
       let user: Any = isMaster ? Master(uid: uid, dictionary: userDictionary) : Client(uid: uid, dictionary: userDictionary)

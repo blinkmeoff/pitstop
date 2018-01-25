@@ -17,17 +17,12 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
   var receiverUID: String? {
     didSet {
       navigationItem.title = "Сообщения"
-      
-      observeMessages()
+      fetchUserAndSetupNavBarTitle()
+      observeTestMessages()
     }
   }
   
-  var receiverProfileImageUrl: String? {
-    didSet{
-      
-      fetchUserAndSetupNavBarTitle()
-    }
-  }
+  var receiverProfileImageUrl: String?
   
   func fetchUserAndSetupNavBarTitle() {
     guard let uid = receiverUID else {
@@ -44,10 +39,12 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
       if dictionary["isClient"] as? Int == 1 {
         //client
         let user = Client(dictionary: dictionary)
+        self.receiverProfileImageUrl = user.profileImageUrl
         self.setupNavBarWith(username: user.username, profileImageUrl: user.profileImageUrl)
       } else {
         //master
         let user = Master(dictionary: dictionary)
+        self.receiverProfileImageUrl = user.profileImageUrl
         self.setupNavBarWith(username: user.username, profileImageUrl: user.profileImageUrl)
       }
       
@@ -95,125 +92,207 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     containerView.centerYAnchor.constraint(equalTo: titleView.centerYAnchor).isActive = true
     
     self.navigationItem.titleView = titleView
-    
-    //        titleView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(showChatController)))
+
   }
 
-  var isFinishedPaging = false
-  var shouldScrollToBottom = true
   var messages = [Message]()
+  var shouldListenToNewMessagesNow = false
   
-  func observeMessages() {
+  func observeTestMessages() {
+    guard let uid = Auth.auth().currentUser?.uid, let toId = receiverUID else {
+      return
+    }
+
+    let userMessagesRef = Database.database().reference().child("user-messages").child(uid).child(toId)
+
+    var query = userMessagesRef.queryOrderedByKey()
+
+    if self.messages.count > 0 {
+      let value = self.messages.first?.id
+      query = query.queryEnding(atValue: value)
+    }
+
+    query.queryLimited(toLast: 20).observeSingleEvent(of: .value, with: { (snapshot) in
+      self.listenForNewMessages()
+        guard var allObjects = snapshot.children.allObjects as? [DataSnapshot] else { return }
+      
+        if allObjects.isEmpty {
+          self.shouldListenToNewMessagesNow = true
+        }
+      
+        allObjects.reverse()
+
+        if self.messages.count > 0 && allObjects.count > 0 {
+          allObjects.removeFirst()
+        }
+
+        var indexPaths = [IndexPath]()
+        for (index, snapshot) in allObjects.enumerated() {
+
+          let messageId = snapshot.key
+          let messagesRef = Database.database().reference().child("messages").child(messageId)
+          messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
+
+            guard let dictionary = snapshot.value as? [String: AnyObject] else {
+              return
+            }
+            
+            let indexPath = IndexPath(item: index, section: 0)
+            indexPaths.append(indexPath)
+            
+            var message = Message(dictionary: dictionary)
+            message.id = snapshot.key
+            self.messages.insert(message, at: 0)
+            if allObjects.count == index + 1 {
+              print("WE ARE DONE")
+              self.updateWith(indexPaths: indexPaths)
+            }
+          })
+        }
+      }, withCancel: nil)
+  }
+  
+  func listenForNewMessages() {
+    
+    guard let uid = Auth.auth().currentUser?.uid, let toId = receiverUID else {
+      return
+    }
+    
+    let userMessagesRef = Database.database().reference().child("user-messages").child(uid).child(toId)
+    userMessagesRef.observe(.childAdded, with: { (snapshot) in
+      if !self.shouldListenToNewMessagesNow {
+        return
+      }
+
+      let messageId = snapshot.key
+      let messagesRef = Database.database().reference().child("messages").child(messageId)
+      messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
+        
+        guard let dictionary = snapshot.value as? [String: AnyObject] else {
+          return
+        }
+        
+      
+        self.messages.append(Message(dictionary: dictionary))
+        DispatchQueue.main.async(execute: {
+          self.collectionView?.reloadData()
+          //scroll to the last index
+          let indexPath = IndexPath(item: self.messages.count - 1, section: 0)
+          self.collectionView?.scrollToItem(at: indexPath, at: .bottom, animated: true)
+        })
+        
+      }, withCancel: nil)
+      
+    }, withCancel: nil)
+  }
+  
+  
+
+  func observeLastMessages() {
+    loadMoreStatus = false
     guard let uid = Auth.auth().currentUser?.uid, let toId = receiverUID else {
       return
     }
     
     let userMessagesRef = Database.database().reference().child("user-messages").child(uid).child(toId)
     
-    userMessagesRef.observe(.childAdded, with: { (snapshot) in
-      let messageId = snapshot.key
-      print(messageId)
-      let messagesRef = Database.database().reference().child("messages").child(messageId)
-      
-      messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
-        guard let dictionary = snapshot.value as? [String: AnyObject] else {
-          return
-        }
-        var message = Message(dictionary: dictionary)
-        self.messages.append(message)
-        
-        DispatchQueue.main.async {
-          self.collectionView?.reloadData()
-          //scroll to the last index
-          if self.messages.isEmpty {
-            return
-          } else {
-            let indexPath = IndexPath(item: self.messages.count - 1, section: 0)
-            self.collectionView?.scrollToItem(at: indexPath, at: .bottom, animated: true)
-          }
-        }
-      })
-    }, withCancel: nil)
+    var query = userMessagesRef.queryOrderedByKey()
     
+    if self.messages.count > 0 {
+      let value = self.messages.first?.id
+      query = query.queryEnding(atValue: value)
+    }
+    
+    query.queryLimited(toLast: 20).observeSingleEvent(of: .value, with: { (snapshot) in
+      
+      guard var allObjects = snapshot.children.allObjects as? [DataSnapshot] else { return }
+      allObjects.reverse()
+      
+      if self.messages.count > 0 && allObjects.count > 0 {
+        allObjects.removeFirst()
+      }
+      
+      var indexPaths = [IndexPath]()
+      for (index, snapshot) in allObjects.enumerated() {
+        
+        let messageId = snapshot.key
+        print(messageId)
+        let messagesRef = Database.database().reference().child("messages").child(messageId)
+        messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
+          
+          guard let dictionary = snapshot.value as? [String: AnyObject] else {
+            return
+          }
+          let indexPath = IndexPath(item: index, section: 0)
+          indexPaths.append(indexPath)
+          
+          var message = Message(dictionary: dictionary)
+          message.id = snapshot.key
+          self.messages.insert(message, at: 0)
+          if allObjects.count == index + 1 {
+            print("WE ARE DONE")
+            self.updateWith(indexPaths: indexPaths)
+            return
+          }
+        })
+      }
+    }, withCancel: nil)
   }
   
-//  func observeMessages() {
-//    guard let uid = Auth.auth().currentUser?.uid, let toId = receiverUID else {
-//      return
-//    }
-//    self.loadMoreStatus = false
-//
-//    if !isFinishedPaging {
-//
-//      let userMessagesRef = Database.database().reference().child("user-messages").child(uid).child(toId)
-//
-//      var query = userMessagesRef.queryOrderedByKey()
-//
-//      if self.messages.count > 0 {
-//        let value = self.messages.first?.id
-//        query = query.queryEnding(atValue: value)
-//      }
-//
-//      query.queryLimited(toLast: 20).observe(.value, with: { (snapshot) in
-//
-//        guard var allObjects = snapshot.children.allObjects as? [DataSnapshot] else { return }
-//        allObjects.reverse()
-//
-//        if allObjects.count < 20 {
-//          self.isFinishedPaging = true
-//        }
-//
-//        if self.messages.count > 0 && allObjects.count > 0 {
-//          allObjects.removeFirst()
-//        }
-//
-//        for (index, snapshot) in allObjects.enumerated() {
-//
-//          let messageId = snapshot.key
-//          print(messageId)
-//          let messagesRef = Database.database().reference().child("messages").child(messageId)
-//          messagesRef.observeSingleEvent(of: .value, with: { (snapshot) in
-//
-//            guard let dictionary = snapshot.value as? [String: AnyObject] else {
-//              return
-//            }
-//            var message = Message(dictionary: dictionary)
-//            message.id = snapshot.key
-//            self.messages.insert(message, at: 0)
-//
-//            DispatchQueue.main.async {
-//              self.collectionView?.reloadData()
-//              //scroll to the last index
-//              if self.messages.isEmpty {
-//                return
-//              } else {
-//                if index == allObjects.count - 1 {
-//                  self.isFinishedPaging = false
-//                  self.loadMoreStatus = true
-//                  if self.shouldScrollToBottom {
-//                    let indexPath = IndexPath(item: self.messages.count - 1, section: 0)
-//                    self.collectionView?.scrollToItem(at: indexPath, at: .bottom, animated: true)
-//                    self.shouldScrollToBottom = false
-//                  }
-//                }
-//              }
-//            }
-//          })
-//        }
-//      }, withCancel: nil)
-//    }
-//  }
+  func updateWith(indexPaths: [IndexPath], isScrollNeeded: Bool = false) {
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    CATransaction.setCompletionBlock {
+      self.loadMoreStatus = true
+      self.shouldListenToNewMessagesNow = true
+    }
+    
+    let contentOffsetY = self.collectionView?.contentOffset.y ?? 0
+    let contentSizeHeight = self.collectionView?.contentSize.height ?? 0
+    let oldBottomOffset = contentSizeHeight - contentOffsetY
+    
+    self.collectionView?.performBatchUpdates({
+      self.collectionView?.insertItems(at: indexPaths)
+      
+      self.collectionView?.collectionViewLayout.invalidateLayout()
+    }, completion: { (completed) in
+      self.collectionView?.layoutIfNeeded()
+      let newHeight = self.collectionView?.contentSize.height ?? 0
+      self.collectionView?.contentOffset = CGPoint(x: 0, y: newHeight - oldBottomOffset)
+      CATransaction.commit()
+    })
+  }
+
   
+  override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    let y = scrollView.contentOffset.y
+    print(y)
+    if self.messages.count > 19 {
+      if y <= 0 {
+        print("Paginating for messages")
+        loadMoreMessages()
+      }
+    }
+  }
+  
+  var loadMoreStatus = false
+  
+  private func loadMoreMessages() {
+    if loadMoreStatus {
+      observeLastMessages()
+    }
+  }
   
   let cellId = "cellId"
   
   override func viewDidLoad() {
     super.viewDidLoad()
-    
     tabBarController?.tabBar.isHidden = true
+    edgesForExtendedLayout = []
     setupCollectionView()
     setupKeyboardObservers()
   }
+
   
   fileprivate func setupCollectionView() {
     collectionView?.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
@@ -451,6 +530,8 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
       
       cell.bubbleViewRightAnchor?.isActive = true
       cell.bubbleViewLeftAnchor?.isActive = false
+      cell.dateLabelRightAnchor?.isActive = true
+//      cell.dateLabelLeftAnchor?.isActive = false
       
     } else {
       //incoming gray
@@ -460,6 +541,8 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
       
       cell.bubbleViewRightAnchor?.isActive = false
       cell.bubbleViewLeftAnchor?.isActive = true
+      cell.dateLabelRightAnchor?.isActive = true
+//      cell.dateLabelLeftAnchor?.isActive = true
     }
     
     if let messageImageUrl = message.imageUrl {
@@ -473,30 +556,17 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     } else {
       cell.messageImageView.isHidden = true
     }
+    
+    guard let timestamp = message.timestamp else { return }
+    let messageDate = Date(timeIntervalSince1970: Double(timestamp))
+    cell.dateLabel.text = messageDate.dateForMessage("dd MMM HH:mm")
   }
   
   override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
     collectionView?.collectionViewLayout.invalidateLayout()
   }
   
-//  override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//    let y = scrollView.contentOffset.y
-//    print(y)
-//    if self.messages.count > 0 {
-//      if y <= 0 {
-//        print("Paginating for messages")
-//        loadMoreMessages()
-//      }
-//    }
-//  }
-//  
-//  var loadMoreStatus = false
-//  
-//  private func loadMoreMessages() {
-//    if loadMoreStatus {
-//      observeMessages()
-//    }
-//  }
+  
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     
@@ -512,15 +582,16 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
       // h1 = h2 / w2 * w1
       
       height = CGFloat(imageHeight / imageWidth * 200)
-      
+    
     }
     
     let width = UIScreen.main.bounds.width
-    return CGSize(width: width, height: height)
+    return CGSize(width: width, height: height + 12)
   }
   
   fileprivate func estimateFrameForText(_ text: String) -> CGRect {
-    let size = CGSize(width: 200, height: 1000)
+//    let size = CGSize(width: 200, height: 1000)
+    let size = CGSize(width: 200, height: CGFloat.infinity)
     let options = NSStringDrawingOptions.usesFontLeading.union(.usesLineFragmentOrigin)
     return NSString(string: text).boundingRect(with: size, options: options, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 16)], context: nil)
   }

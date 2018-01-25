@@ -10,7 +10,14 @@ import UIKit
 import Firebase
 import LBTAComponents
 
-class MessagesCell: UICollectionViewCell {
+class MessagesCell: UITableViewCell {
+  
+  override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    super.init(style: style, reuseIdentifier: reuseIdentifier)
+    setupViews()
+  }
+  
+  
   
   var message: Message? {
     didSet{
@@ -51,11 +58,7 @@ class MessagesCell: UICollectionViewCell {
     
   }
   
-  override init(frame: CGRect) {
-    super.init(frame: frame)
-    
-    setupViews()
-  }
+
   
   let profileImageView: CachedImageView = {
     let iv = CachedImageView()

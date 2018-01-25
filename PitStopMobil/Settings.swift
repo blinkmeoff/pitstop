@@ -11,6 +11,8 @@ import LBTAComponents
 
 struct Settings {
   
+  static let appName = "PitStopMobile"
+  
   struct Color {
     static let blue = UIColor.rgb(red: 0, green: 120, blue: 175)
     static let orange = UIColor.rgb(red: 255, green: 135, blue: 47)

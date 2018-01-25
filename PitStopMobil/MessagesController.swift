@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class MessagesController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
+class MessagesController: UITableViewController {
   
   let cellId = "cellId"
   let footerId = "footerId"
@@ -33,24 +33,17 @@ class MessagesController: UICollectionViewController, UICollectionViewDelegateFl
     tabBarController?.tabBar.isHidden = false
   }
   
-  lazy var refreshControl: UIRefreshControl = {
-    let rf = UIRefreshControl()
-    rf.tintColor = UIColor(r: 243, g: 72, b: 96)
-    rf.addTarget(self, action: #selector(handleRefreshMessages), for: .valueChanged)
-    return rf
-  }()
   
   fileprivate func setupCollectionView() {
-    collectionView?.backgroundColor = .white
-    collectionView?.register(MessagesCell.self, forCellWithReuseIdentifier: cellId)
-    collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: footerId)
-    collectionView?.refreshControl = refreshControl
+    tableView.backgroundColor = .white
+    tableView.register(MessagesCell.self, forCellReuseIdentifier: cellId)
+    tableView.tableFooterView = UIView()
+    tableView.refreshControl = refreshControl
   }
   
   @objc func handleRefreshMessages() {
     messages.removeAll()
     messagesDictionary.removeAll()
-//    collectionView?.reloadData()
     observeUserMessages()
   }
   
@@ -70,6 +63,15 @@ class MessagesController: UICollectionViewController, UICollectionViewDelegateFl
         self.fetchMessageWithMessageId(messageId)
         
       }, withCancel: nil)
+      
+    }, withCancel: nil)
+    
+    ref.observe(.childRemoved, with: { (snapshot) in
+      print(snapshot.key)
+      print(self.messagesDictionary)
+      
+      self.messagesDictionary.removeValue(forKey: snapshot.key)
+      self.attemptReloadOfTable()
       
     }, withCancel: nil)
   }
@@ -111,78 +113,103 @@ class MessagesController: UICollectionViewController, UICollectionViewDelegateFl
     
     //this will crash because of background thread, so lets call this on dispatch_async main thread
     DispatchQueue.main.async(execute: {
-      self.refreshControl.endRefreshing()
-      self.collectionView?.reloadData()
+      self.refreshControl?.endRefreshing()
+      self.tableView.reloadData()
     })
   }
-
-  override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! MessagesCell
+  
+  override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     
+    let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! MessagesCell
     cell.message = messages[indexPath.item]
-    
+    cell.selectionStyle = .none
     return cell
   }
-  
-  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-    return 0
-  }
-  
-  override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+
+  override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     return messages.count
   }
   
-  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    return CGSize(width: collectionView.frame.width, height: 77)
+  override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    return 78
   }
   
-  override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+  override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
     let message = messages[indexPath.row]
     
     guard let chatPartnerId = message.chatPartnerId() else {
       return
     }
-    
-    let ref = Database.database().reference().child("users").child(chatPartnerId)
-    ref.observeSingleEvent(of: .value, with: { (snapshot) in
-      guard let dictionary = snapshot.value as? [String: AnyObject] else {
-        return
-      }
-      
-      if dictionary["isClient"] as? Int == 1 {
-        //client
-        let user = Client(dictionary: dictionary)
-        self.presentChatLogFor(uid: chatPartnerId, profileImageUrl: user.profileImageUrl)
-      } else {
-        //master
-        let user = Master(dictionary: dictionary)
-        self.presentChatLogFor(uid: chatPartnerId, profileImageUrl: user.profileImageUrl)
-      }
-      
-    }, withCancel: nil)
-    
+    self.presentChatLogFor(uid: chatPartnerId, profileImageUrl: message.imageUrl ?? "")
   }
   
-  func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
-    return messages.isEmpty ? CGSize(width: view.frame.width, height: collectionView.frame.height - 60 - 40) : .zero
+  
+  
+  override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+    return true
   }
   
-  override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-    let footer = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: footerId, for: indexPath)
+  override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
     
-    setupFooterCell(cell: footer)
-
-    return footer
+    removeMessageDialog(for: indexPath.row)
   }
   
-  private func setupFooterCell(cell: UICollectionReusableView) {
+  func removeMessageDialog(for row: Int) {
+    guard let uid = Auth.auth().currentUser?.uid else {
+      return
+    }
+    
+    let message = self.messages[row]
+    
+    if let chatPartnerId = message.chatPartnerId() {
+      Database.database().reference().child("user-messages").child(uid).child(chatPartnerId).removeValue(completionBlock: { (error, ref) in
+        
+        if error != nil {
+          print("Failed to delete message:", error ?? "")
+          return
+        }
+        
+        self.messagesDictionary.removeValue(forKey: chatPartnerId)
+      })
+    }
+  }
+  
+  @available(iOS 11.0, *)
+  override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    let action = UIContextualAction(style: .normal, title: "Удалить") { (action, view, completionHandler) in
+      self.removeMessageDialog(for: indexPath.row)
+      completionHandler(true)
+    }
+    
+    action.image = #imageLiteral(resourceName: "remove")
+    action.backgroundColor = Settings.Color.pink
+    action.title = "Удалить"
+    let configuration = UISwipeActionsConfiguration(actions: [action])
+    return configuration
+  }
+  
+  
+  override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    return messages.isEmpty ? view.frame.height - 120 : 0
+  }
+  
+  override func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+    return setupFooterView()
+  }
+  
+  private func setupFooterView() -> UIView {
+    let view = UIView()
+    view.backgroundColor = .white
+    
     let noMessagesLabel = UILabel()
     noMessagesLabel.text = "Нет сообщений"
     noMessagesLabel.textColor = .lightGray
     noMessagesLabel.textAlignment = .center
     noMessagesLabel.font = UIFont.systemFont(ofSize: 17)
-    cell.addSubview(noMessagesLabel)
+    
+    view.addSubview(noMessagesLabel)
     noMessagesLabel.fillSuperview()
+    return view
   }
   
   fileprivate func presentChatLogFor(uid: String, profileImageUrl: String) {

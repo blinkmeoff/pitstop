@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class MasterProfileController: UICollectionViewController, UICollectionViewDelegateFlowLayout, MasterProfileHeaderDelegate {
+class MasterProfileController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
   
   let cellId = "cellId"
   let headerId = "headerId"
@@ -34,7 +34,11 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
     collectionView?.register(MasterProfileHeader.self, forSupplementaryViewOfKind: UICollectionElementKindSectionHeader, withReuseIdentifier: headerId)
     collectionView?.register(MasterProfileCell.self, forCellWithReuseIdentifier: cellId)
     collectionView?.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionElementKindSectionFooter, withReuseIdentifier: footerId)
-
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    tabBarController?.tabBar.isHidden = false
   }
   
   fileprivate func setupLogOutButton() {
@@ -52,6 +56,12 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
     alertController.addAction(UIAlertAction(title: "Выйти", style: .destructive, handler: { (_) in
       
       do {
+        //remove notifications
+        if let uid = Auth.auth().currentUser?.uid {
+          let ref = Database.database().reference().child("users").child(uid)
+          ref.updateChildValues(["fcmToken": ""])
+        }
+        
         try Auth.auth().signOut()
         
         //what happens? we need to present some kind of login controller
@@ -65,6 +75,8 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
     }))
     
     alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
+    let versionNumber = Bundle.applicationVersionNumber
+    alertController.title = "Версия \(versionNumber)"
     
     present(alertController, animated: true, completion: nil)
   }
@@ -96,8 +108,16 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-    let width = view.frame.width
-    return CGSize(width: width, height: 64)
+    let frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 50)
+    let dummyCell = MasterProfileCell(frame: frame)
+    dummyCell.feedback = feedbacks[indexPath.item]
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: view.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(64, estimatedSize.height)
+    return CGSize(width: view.frame.width, height: height)
   }
   
   override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -130,7 +150,7 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   
   private func setupFooterCell(cell: UICollectionReusableView) {
     let noMessagesLabel = UILabel()
-    noMessagesLabel.text = "Нет ожидающих заявок"
+    noMessagesLabel.text = "Нет отзывов"
     noMessagesLabel.textColor = .lightGray
     noMessagesLabel.textAlignment = .center
     noMessagesLabel.font = UIFont.systemFont(ofSize: 17)
@@ -139,7 +159,17 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   }
   
   func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-    return CGSize(width: view.frame.width, height: 228)
+//    return CGSize(width: view.frame.width, height: 228)
+    let frame = CGRect(x: 0, y: 0, width: view.frame.width, height: 50)
+    let dummyCell = MasterProfileHeader(frame: frame)
+    dummyCell.master = master
+    dummyCell.layoutIfNeeded()
+    
+    let targetSize = CGSize(width: view.frame.width, height: 1000)
+    let estimatedSize = dummyCell.systemLayoutSizeFitting(targetSize)
+    
+    let height = max(180, estimatedSize.height)
+    return CGSize(width: view.frame.width, height: height)
   }
   
   var master: Master?
@@ -163,10 +193,12 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   var ordersCount = 0
   
   private func fetchOrders() {
+    ordersCount = 0
     let uid = userId ?? (Auth.auth().currentUser?.uid ?? "")
     let ref = Database.database().reference().child("order-open-for-master").child(uid)
     ref.observe(.value) { (snapshot) in
-      self.ordersCount += 1
+      guard let allObjects = snapshot.children.allObjects as? [DataSnapshot] else { return }
+      self.ordersCount = allObjects.count
       self.collectionView?.reloadData()
     }
   }
@@ -175,6 +207,7 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   var feedbacks = [Feedback]()
   
   private func fetchFeedback() {
+    feedbacks.removeAll()
     let uid = userId ?? (Auth.auth().currentUser?.uid ?? "")
     let ref = Database.database().reference().child("feedbacks").child(uid)
     ref.observe(.value) { (snapshot) in
@@ -184,19 +217,26 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
         guard let dictionary = value as? [String: Any] else { return }
         self.feedbacks.append(Feedback(dictionary: dictionary))
       })
+      self.feedbacks.sort(by: { (f1, f2) -> Bool in
+        return f1.creationDate.compare(f2.creationDate) == .orderedDescending
+      })
       self.collectionView?.reloadData()
     }
   }
   
-  //MARK: Delegate Master Profile Header
+  
+}
+
+extension MasterProfileController: MasterProfileHeaderDelegate {
+  
   func showChatControllerForUser(uid: String, profileImageUrl: String) {
     
     let chatLogController = ChatLogController(collectionViewLayout: UICollectionViewFlowLayout())
     chatLogController.receiverUID = uid
     chatLogController.receiverProfileImageUrl = profileImageUrl
     navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    navigationController?.navigationBar.tintColor = .black
     navigationController?.pushViewController(chatLogController, animated: true)
-    
   }
   
   func didTapShowPhoneNumber(phone: String) {
@@ -206,7 +246,16 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   
   func didTapOrders() {
     let activeOrdersController = ActiveOrdersController(collectionViewLayout: UICollectionViewFlowLayout())
+    activeOrdersController.userId = userId
     let navController = UINavigationController(rootViewController: activeOrdersController)
     self.present(navController, animated: true, completion: nil)
+  }
+  
+  func didTapEditProfile(master: Master) {
+    let editController = MasterEditProfileController()
+    editController.master = master
+    navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    navigationController?.navigationBar.tintColor = .black
+    navigationController?.pushViewController(editController, animated: true)
   }
 }

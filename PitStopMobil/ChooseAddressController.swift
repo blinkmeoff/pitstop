@@ -17,6 +17,7 @@ class ChooseAddressController: UIViewController, UINavigationBarDelegate, CLLoca
   var locationManager = CLLocationManager()
   
   var masterDetailsController: MasterDetailsController?
+  var masterEditController: MasterEditProfileController?
   
   var googleMapsView: GMSMapView = {
     let map = GMSMapView()
@@ -125,12 +126,16 @@ class ChooseAddressController: UIViewController, UINavigationBarDelegate, CLLoca
             }
           }
           
-          self.nameLabel.text = placeLikelihoodList.name
-          self.addressLabel.text = address
-          self.masterDetailsController?.longitude = place.coordinate.longitude
-          self.masterDetailsController?.latitude = place.coordinate.latitude
-          self.masterDetailsController?.addressTextField.text = self.addressLabel.text
-          self.masterDetailsController?.handleTextInputChange()
+            self.nameLabel.text = placeLikelihoodList.name
+            self.addressLabel.text = address
+            self.masterDetailsController?.longitude = place.coordinate.longitude
+            self.masterDetailsController?.latitude = place.coordinate.latitude
+            self.masterDetailsController?.addressTextField.text = self.addressLabel.text
+            self.masterDetailsController?.handleTextInputChange()
+          
+            self.masterEditController?.longitude = place.coordinate.longitude
+            self.masterEditController?.latitude = place.coordinate.latitude
+            self.masterEditController?.addressTextField.text = self.addressLabel.text
           }
         
       })
