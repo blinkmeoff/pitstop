@@ -48,6 +48,7 @@ class OrderDetailsCell: BaseCell {
     return label
   }()
   
+  
   let textView: UITextView = {
     let textView = UITextView()
     textView.textColor = .darkGray

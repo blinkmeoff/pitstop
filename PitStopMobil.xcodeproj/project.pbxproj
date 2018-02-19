@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		2056DC928ACCB469BA8FE627 /* Pods_PitStopMobil.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADC464548700277DACE09F56 /* Pods_PitStopMobil.framework */; };
+		370BADAE202258BC005C226A /* ConfirmedOrderDetailsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 370BADAD202258BC005C226A /* ConfirmedOrderDetailsController.swift */; };
 		371169171FEE847B00315BDD /* OrderDetailsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371169161FEE847B00315BDD /* OrderDetailsController.swift */; };
 		3711691A1FEE87C700315BDD /* OrderDetailsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371169191FEE87C700315BDD /* OrderDetailsCell.swift */; };
 		3711691C1FEE87F600315BDD /* OrderImageCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3711691B1FEE87F600315BDD /* OrderImageCell.swift */; };
@@ -87,6 +88,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		370BADAD202258BC005C226A /* ConfirmedOrderDetailsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmedOrderDetailsController.swift; sourceTree = "<group>"; };
 		371169161FEE847B00315BDD /* OrderDetailsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailsController.swift; sourceTree = "<group>"; };
 		371169191FEE87C700315BDD /* OrderDetailsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderDetailsCell.swift; sourceTree = "<group>"; };
 		3711691B1FEE87F600315BDD /* OrderImageCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderImageCell.swift; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 				3711691D1FEE9F7000315BDD /* PendingOrderCell.swift */,
 				371169241FEEC3B500315BDD /* MenuBarConfirmedCell.swift */,
 				3711692A1FEF02A900315BDD /* ConfirmedOrderCell.swift */,
+				370BADAD202258BC005C226A /* ConfirmedOrderDetailsController.swift */,
 			);
 			name = MenuBar;
 			sourceTree = "<group>";
@@ -696,6 +699,7 @@
 				37997DC41F77B86100837593 /* ChatInputContainerView.swift in Sources */,
 				376BCDA11F39F41A0006A999 /* LoginController.swift in Sources */,
 				376BCD8C1F39F05D0006A999 /* AppDelegate.swift in Sources */,
+				370BADAE202258BC005C226A /* ConfirmedOrderDetailsController.swift in Sources */,
 				379D9B6A20152BF000C1303B /* NewOrderCarChooseCell.swift in Sources */,
 				379D9B68201529B500C1303B /* NewOrderCarChooseVC.swift in Sources */,
 				37C26D0A1F66CABC00F5B71A /* MasterProfileCell.swift in Sources */,

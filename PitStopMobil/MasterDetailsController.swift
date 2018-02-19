@@ -8,10 +8,13 @@
 
 import UIKit
 import Firebase
+import GooglePlacePicker
 
 class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
   
   var phoneNumber: String?
+  var placesClient: GMSPlacesClient!
+
   
   var latitude: Double?
   var longitude: Double?
@@ -19,7 +22,8 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
   override func viewDidLoad() {
     super.viewDidLoad()
     view.backgroundColor = .white
-    
+    placesClient = GMSPlacesClient.shared()
+
     setupViews()
     setupInputFields()
   }
@@ -205,7 +209,7 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
     guard let uid = Auth.auth().currentUser?.uid else { return }
     guard let fcmToken = Messaging.messaging().fcmToken else { return }
 
-    var dictionaryValues = ["phoneNumber": phoneNumber, "username": username, "city": city, "address": address, "isClient": 0, "latitude": latitude, "longitude": longitude, "profileImageUrl": "", "fcmToken": fcmToken] as [String : Any]
+    var dictionaryValues = ["phoneNumber": phoneNumber, "username": username, "city": city, "address": address, "isClient": 0, "latitude": latitude, "longitude": longitude, "profileImageUrl": "", "fcmToken": fcmToken, "creationDate": Date().timeIntervalSince1970] as [String : Any]
     
     if isImageChoosen {
       Storage.storage().reference().child("profile_images").child(filename).putData(uploadData, metadata: nil) { (metadata, err) in
@@ -278,8 +282,12 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
   }()
   
   @objc func handleAlreadyHaveAccount() {
-    let loginController = LoginController()
-    navigationController?.pushViewController(loginController, animated: true)
+    self.presentConfirmAlert(message: "Введенные данные будут потерянны", title: "Вы уверенны, что хотите прервать регистрацию?") { (isConfirmed) in
+      if isConfirmed {
+        let loginController = LoginController()
+        self.navigationController?.pushViewController(loginController, animated: true)
+      }
+    }
   }
   
   
@@ -328,11 +336,15 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
       cityTextField.isEnabled = false
       
     } else if textField == addressTextField {
-      let chooseAddressController = ChooseAddressController()
-      chooseAddressController.masterDetailsController = self
-      let navController = UINavigationController(rootViewController: chooseAddressController)
-      present(navController, animated: true, completion: nil)
+//      let chooseAddressController = ChooseAddressController()
+//      chooseAddressController.masterDetailsController = self
+//      let navController = UINavigationController(rootViewController: chooseAddressController)
+//      present(navController, animated: true, completion: nil)
+      let config = GMSPlacePickerConfig(viewport: nil)
+      let placePicker = GMSPlacePickerViewController(config: config)
+      placePicker.delegate = self
       
+      present(placePicker, animated: true, completion: nil)
       addressTextField.isEnabled = false
     }
     
@@ -340,3 +352,48 @@ class MasterDetailsController: UIViewController, UIImagePickerControllerDelegate
   
 }
 
+extension MasterDetailsController: GMSPlacePickerViewControllerDelegate {
+  func placePicker(_ viewController: GMSPlacePickerViewController, didPick place: GMSPlace) {
+    viewController.dismiss(animated: true, completion: nil)
+    self.placesClient.lookUpPlaceID(place.placeID, callback: { (placeLikelihoodList, err) in
+      if let error = err {
+        print("Pick Place error: \(error.localizedDescription)")
+        return
+      }
+      
+      var address = String()
+      
+      if let placeLikelihoodList = placeLikelihoodList {
+        
+        if let addr = placeLikelihoodList.addressComponents {
+          for value in addr {
+            if value.type == "route" {
+              address.append("\( value.name) ")
+            } else if value.type == "street_number" {
+              address.append("\( value.name) ")
+            } else if value.type == "sublocality_level_1" {
+              address.append("\( value.name) ")
+            }
+          }
+        }
+    
+        self.addressTextField.text = address
+        self.longitude = place.coordinate.longitude
+        self.latitude = place.coordinate.latitude
+        self.handleTextInputChange()
+      }
+    })
+  }
+  
+  func placePicker(_ viewController: GMSPlacePickerViewController, didFailWithError error: Error) {
+    // In your own app you should handle this better, but for the demo we are just going to log
+    // a message.
+    NSLog("An error occurred while picking a place: \(error)")
+  }
+  
+  func placePickerDidCancel(_ viewController: GMSPlacePickerViewController) {
+    // Dismiss the place picker, as it cannot dismiss itself.
+    viewController.dismiss(animated: true, completion: nil)
+    print("No place selected")
+  }
+}

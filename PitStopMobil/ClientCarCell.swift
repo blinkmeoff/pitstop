@@ -30,6 +30,7 @@ class ClientCarCell: UITableViewCell {
           }, completion: nil)
         })
       } else {
+        self.realCarPhotoImageView.alpha = 0
         carImageView.isHidden = false
       }
     }

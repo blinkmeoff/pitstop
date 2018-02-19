@@ -25,7 +25,14 @@ class SMSCodeController: UIViewController, UITextFieldDelegate  {
   
   func setSMSCodeLabelText() {
     guard let phoneNumber = phoneNumber else { return }
-    enterSMSCodeLabel.text = "Мы выслали Вам SMS с кодом подтверждения, на номер \(phoneNumber)"
+    
+    let mainText = "Мы выслали Вам SMS с кодом подтверждения, на номер\n"
+    let optionText = "Если вы не получили SMS в течении 2-ух минут - попробуйте авторизироваться заново"
+    let attrText = NSMutableAttributedString(string: mainText, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 16), NSAttributedStringKey.foregroundColor: UIColor.lightGray])
+    attrText.append(NSAttributedString(string: phoneNumber, attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 16), NSAttributedStringKey.foregroundColor: Settings.Color.blue]))
+    attrText.append(NSAttributedString(string: "\n\n", attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 5)]))
+    attrText.append(NSAttributedString(string: optionText, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 8), NSAttributedStringKey.foregroundColor: UIColor.lightGray]))
+    enterSMSCodeLabel.attributedText = attrText
   }
   
   override func viewWillAppear(_ animated: Bool) {

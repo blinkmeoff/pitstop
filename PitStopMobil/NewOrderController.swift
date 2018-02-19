@@ -21,7 +21,8 @@ class NewOrderController: UIViewController {
                   "Электрик",
                   "Ходовик",
                   "Развальщик",
-                  "Моторист"]
+                  "Моторист",
+                  "Не знаю"]
   
   lazy var createButton: UIButton = {
     let button = UIButton(type: .system)

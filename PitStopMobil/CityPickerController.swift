@@ -63,21 +63,35 @@ class CityPickerController: UICollectionViewController, UICollectionViewDelegate
     
   }
   
+  lazy var closeButton: UIButton = {
+    let button = UIButton(type: .system)
+    button.setTitle("Отмена", for: .normal)
+    button.setTitleColor(.black, for: .normal)
+    button.addTarget(self, action: #selector(handleDismiss), for: .touchUpInside)
+    return button
+  }()
+  
   override func viewDidLoad() {
     super.viewDidLoad()
     collectionView?.backgroundColor = .white
-    
+    navigationController?.navigationBar.addSubview(closeButton)
     navigationController?.navigationBar.addSubview(searchBar)
     
     let navBar = navigationController?.navigationBar
-    
-    searchBar.anchor(top: navBar?.topAnchor, left: navBar?.leftAnchor, bottom: navBar?.bottomAnchor, right: navBar?.rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
+    closeButton.anchor(top: navBar?.topAnchor, left: nil, bottom: navBar?.bottomAnchor, right: navBar?.rightAnchor, paddingTop: 8, paddingLeft: 0, paddingBottom: 8, paddingRight: 8, width: 80, height: 0)
+    searchBar.anchor(top: navBar?.topAnchor, left: navBar?.leftAnchor, bottom: navBar?.bottomAnchor, right: closeButton.leftAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
     
     collectionView?.register(CityPickerCell.self, forCellWithReuseIdentifier: cellId)
     
     collectionView?.alwaysBounceVertical = true
     collectionView?.keyboardDismissMode = .onDrag
     sortCities()
+  }
+  
+  
+  @objc private func handleDismiss() {
+    searchBar.resignFirstResponder()
+    self.dismiss(animated: true, completion: nil)
   }
   
   
@@ -100,7 +114,8 @@ class CityPickerController: UICollectionViewController, UICollectionViewDelegate
     
     let city = filteredCities[indexPath.item]
     masterDetailsController?.cityTextField.text = city
-    masterEditController?.cityTextField.text = city
+    masterEditController?.cityLabel.text = city
+    masterEditController?.cityLabel.textColor = .black
     masterDetailsController?.handleTextInputChange()
     dismiss(animated: true, completion: nil)
   }

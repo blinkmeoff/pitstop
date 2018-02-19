@@ -216,6 +216,7 @@ class MasterProfileHeader: UICollectionViewCell {
     //        label.numberOfLines = 0
     //        label.backgroundColor = .lightGray
     textView.isScrollEnabled = false
+    textView.isEditable = false
     return textView
   }()
   

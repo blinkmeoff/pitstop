@@ -23,6 +23,8 @@ class ChatInputContainerView: UIView, UITextFieldDelegate {
     textField.translatesAutoresizingMaskIntoConstraints = false
     let attrPlaceholder = NSAttributedString(string: "Напишите сообщение", attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 15), NSAttributedStringKey.foregroundColor: UIColor.lightGray])
     textField.attributedPlaceholder = attrPlaceholder
+    textField.returnKeyType = .done
+    textField.delegate = self
     return textField
   }()
   
@@ -83,7 +85,7 @@ class ChatInputContainerView: UIView, UITextFieldDelegate {
   }
   
   func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-    chatLogController?.handleSend()
+    inputTextField.resignFirstResponder()
     return true
   }
   

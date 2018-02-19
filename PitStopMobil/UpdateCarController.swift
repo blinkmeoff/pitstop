@@ -420,6 +420,7 @@ class UpdateCarController: UIViewController {
           return
         }
         
+        self.clientProfileController?.cars.removeAll()
         self.clientProfileController?.fetchCarsFor(uid: uid)
         print("Successfully updated car info...")
         LoadingIndicator.shared.hide()

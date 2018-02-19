@@ -148,6 +148,27 @@ class MenuBarPendingCell: BaseCell, UICollectionViewDelegateFlowLayout, UICollec
     return footer
   }
   
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    
+    guard let cell = collectionView.cellForItem(at: indexPath) as? PendingOrderCell else { return }
+    
+    var foundKey = ""
+    for (_, value) in self.ordersDictionary.enumerated() {
+      if value.value == cell.order {
+        foundKey = value.key
+      }
+    }
+    
+    let apliedMastersController = ApliedMastersController(collectionViewLayout: UICollectionViewFlowLayout())
+    apliedMastersController.key = foundKey
+    apliedMastersController.item = indexPath.item
+    apliedMastersController.menuBarPendingCell = self
+    apliedMastersController.clientOrdersController = clientOrdersController
+    clientOrdersController?.navigationController?.pushViewController(apliedMastersController, animated: true)
+    clientOrdersController?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: nil)
+    clientOrdersController?.navigationItem.backBarButtonItem?.tintColor = .black
+  }
+  
   private func setupFooterCell(cell: UICollectionReusableView) {
     let noMessagesLabel = UILabel()
     noMessagesLabel.text = "Нет ожидающих заявок"
@@ -206,25 +227,5 @@ extension MenuBarPendingCell: PendingOrderCellDelegate {
     })
   }
   
-  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-    
-    guard let cell = collectionView.cellForItem(at: indexPath) as? PendingOrderCell else { return }
-    
-    var foundKey = ""
-    for (_, value) in self.ordersDictionary.enumerated() {
-      if value.value == cell.order {
-        foundKey = value.key
-      }
-    }
-    
-    let apliedMastersController = ApliedMastersController(collectionViewLayout: UICollectionViewFlowLayout())
-    apliedMastersController.key = foundKey
-    apliedMastersController.item = indexPath.item
-    apliedMastersController.menuBarPendingCell = self
-    apliedMastersController.clientOrdersController = clientOrdersController
-    clientOrdersController?.navigationController?.pushViewController(apliedMastersController, animated: true)
-    clientOrdersController?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: nil)
-    clientOrdersController?.navigationItem.backBarButtonItem?.tintColor = .black
-
-  }
+ 
 }

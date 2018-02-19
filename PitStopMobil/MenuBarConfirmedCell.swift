@@ -120,6 +120,15 @@ class MenuBarConfirmedCell: BaseCell, UICollectionViewDelegateFlowLayout, UIColl
     return footer
   }
   
+  func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    let confirmedOrderDetailsController = ConfirmedOrderDetailsController(collectionViewLayout: UICollectionViewFlowLayout())
+    confirmedOrderDetailsController.orderUID = confirmedOrders[indexPath.item].orderUID
+    confirmedOrderDetailsController.masterUID = confirmedOrders[indexPath.item].masterUID
+    clientOrdersController?.navigationController?.pushViewController(confirmedOrderDetailsController, animated: true)
+    clientOrdersController?.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: self, action: nil)
+    clientOrdersController?.navigationItem.backBarButtonItem?.tintColor = .black
+  }
+  
   private func setupFooterCell(cell: UICollectionReusableView) {
     let noMessagesLabel = UILabel()
     noMessagesLabel.text = "Нет подтвержденных заказов"

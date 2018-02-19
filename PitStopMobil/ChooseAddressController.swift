@@ -135,7 +135,7 @@ class ChooseAddressController: UIViewController, UINavigationBarDelegate, CLLoca
           
             self.masterEditController?.longitude = place.coordinate.longitude
             self.masterEditController?.latitude = place.coordinate.latitude
-            self.masterEditController?.addressTextField.text = self.addressLabel.text
+            self.masterEditController?.addressLabel.text = self.addressLabel.text
           }
         
       })

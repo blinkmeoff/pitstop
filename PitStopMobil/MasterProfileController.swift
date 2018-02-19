@@ -38,7 +38,11 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   
   override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
-    tabBarController?.tabBar.isHidden = false
+    if userId != nil {
+      tabBarController?.tabBar.isHidden = true
+    } else {
+      tabBarController?.tabBar.isHidden = false
+    }
   }
   
   fileprivate func setupLogOutButton() {
@@ -47,7 +51,14 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
     } else {
       navigationItem.rightBarButtonItem = UIBarButtonItem(image: #imageLiteral(resourceName: "gear").withRenderingMode(.alwaysOriginal), style: .plain, target: self, action: #selector(handleLogOut))
     }
-    
+  }
+  
+  func removeFCMToken(completion: () -> Swift.Void) {
+    if let uid = Auth.auth().currentUser?.uid {
+      let ref = Database.database().reference().child("users").child(uid)
+      ref.updateChildValues(["fcmToken": ""])
+      completion()
+    }
   }
   
   @objc func handleLogOut() {
@@ -55,23 +66,21 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
     
     alertController.addAction(UIAlertAction(title: "Выйти", style: .destructive, handler: { (_) in
       
-      do {
-        //remove notifications
-        if let uid = Auth.auth().currentUser?.uid {
-          let ref = Database.database().reference().child("users").child(uid)
-          ref.updateChildValues(["fcmToken": ""])
+      self.removeFCMToken {
+        do {
+          //remove notifications
+          try Auth.auth().signOut()
+          
+          //what happens? we need to present some kind of login controller
+          let choiseController = ChoiseController()
+          let navController = UINavigationController(rootViewController: choiseController)
+          self.present(navController, animated: true, completion: nil)
+          
+        } catch let signOutErr {
+          print("Failed to sign out:", signOutErr)
         }
-        
-        try Auth.auth().signOut()
-        
-        //what happens? we need to present some kind of login controller
-        let choiseController = ChoiseController()
-        let navController = UINavigationController(rootViewController: choiseController)
-        self.present(navController, animated: true, completion: nil)
-        
-      } catch let signOutErr {
-        print("Failed to sign out:", signOutErr)
       }
+      
     }))
     
     alertController.addAction(UIAlertAction(title: "Отмена", style: .cancel, handler: nil))
@@ -177,7 +186,7 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   
   fileprivate func fetchMasterInfo() {
     let uid = userId ?? (Auth.auth().currentUser?.uid ?? "")
-    
+    if uid.isEmpty { return }
     Database.fetchUserWithUID(uid: uid, isMaster: true) { (master) in
       if let master = master as? Master {
         self.master = master
@@ -195,6 +204,7 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   private func fetchOrders() {
     ordersCount = 0
     let uid = userId ?? (Auth.auth().currentUser?.uid ?? "")
+    if uid.isEmpty { return }
     let ref = Database.database().reference().child("order-open-for-master").child(uid)
     ref.observe(.value) { (snapshot) in
       guard let allObjects = snapshot.children.allObjects as? [DataSnapshot] else { return }
@@ -209,6 +219,7 @@ class MasterProfileController: UICollectionViewController, UICollectionViewDeleg
   private func fetchFeedback() {
     feedbacks.removeAll()
     let uid = userId ?? (Auth.auth().currentUser?.uid ?? "")
+    if uid.isEmpty { return }
     let ref = Database.database().reference().child("feedbacks").child(uid)
     ref.observe(.value) { (snapshot) in
       

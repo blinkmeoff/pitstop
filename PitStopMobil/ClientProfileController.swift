@@ -34,6 +34,8 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
     super.viewDidLoad()
     view.backgroundColor = .white
     navigationItem.title = "Профиль"
+    self.extendedLayoutIncludesOpaqueBars = false
+    self.automaticallyAdjustsScrollViewInsets = false
     setupCollection()
     setupLogOutButton()
     fetchClientInfo()
@@ -52,7 +54,12 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
     tableView.tableFooterView = UIView() // blank UIView
     view.addSubview(tableView)
     
-    tableView.anchor(collectionView.bottomAnchor, left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 0)
+    if #available(iOS 11.0, *) {
+      tableView.anchor(collectionView.bottomAnchor, left: view.leftAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, right: view.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 0)
+    } else {
+      // Fallback on earlier versions
+      tableView.anchor(collectionView.bottomAnchor, left: view.leftAnchor, bottom: bottomLayoutGuide.topAnchor, right: view.rightAnchor, topConstant: 0, leftConstant: 0, bottomConstant: 0, rightConstant: 0, widthConstant: 0, heightConstant: 0)
+    }
   }
   
   fileprivate func setupCollection() {
@@ -132,14 +139,16 @@ class ClientProfileController: UIViewController, ClientProfileHeaderDelegate, UI
   }
   
   func fetchCarsFor(uid: String) {
-    cars.removeAll()
+    self.cars.removeAll()
+
     Database.database().reference().child("cars").child(uid).observe(.childAdded , with: { (snapshot) in
-      
+
       guard let carsDictionary = snapshot.value as? [String: Any] else { return }
       let carId = snapshot.key
       
       let car = Car(dictionary: carsDictionary, id: carId)
-      print(carId)
+      if car.mark == "" { return }
+      
       self.cars.append(car)
       
       DispatchQueue.main.async {
@@ -282,8 +291,11 @@ extension ClientProfileController: UITableViewDataSource, UITableViewDelegate {
   @available(iOS 11.0, *)
   func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
     let action = UIContextualAction(style: .normal, title: nil) { (action, view, completionHandler) in
-      
-      self.removeCarFromDB(indexPath: indexPath)
+      self.presentConfirmAlert(message: nil, title: "Вы уверенны, что хотите удалить этот автомобиль?", completion: { (isConfirmed) in
+        if isConfirmed {
+          self.removeCarFromDB(indexPath: indexPath)
+        }
+      })
       completionHandler(true)
     }
     
@@ -308,11 +320,35 @@ extension ClientProfileController: UITableViewDataSource, UITableViewDelegate {
         print("error", err ?? "")
         return
       }
-      
+      self.removeCarImageFromStorage(indexPath: indexPath)
       self.cars.remove(at: indexPath.row)
       self.tableView.deleteRows(at: [indexPath], with: .bottom)
       
       print("Successfully removed")
+    }
+  }
+  
+  private func removeImage(with url: String) {
+    let storage = Storage.storage()
+    let storageRef = storage.reference(forURL: url)
+    
+    //Removes image from storage
+    storageRef.delete { error in
+      if let error = error {
+        print(error)
+      } else {
+        // File deleted successfully
+      }
+    }
+  }
+  
+  private func removeCarImageFromStorage(indexPath: IndexPath) {
+    if let firstImage = cars[indexPath.row].firstImage, firstImage.count > 0 {
+      removeImage(with: firstImage)
+    }
+    
+    if let secondImage = cars[indexPath.row].secondImage, secondImage.count > 0 {
+      removeImage(with: secondImage)
     }
   }
   
@@ -324,16 +360,18 @@ extension ClientProfileController: CarModelPickerDelegate {
   func didPickModel(carMark: String, carModel: String) {
     guard let uid = Auth.auth().currentUser?.uid else { return }
     
-    let reference = Database.database().reference().child("cars").child(uid).childByAutoId()
+    let reference = Database.database().reference().child("cars").child(uid)
+    let childRef = reference.childByAutoId()
     let values = ["isMain": 0, "mark": carMark, "model": carModel] as [String: Any]
     
-    reference.updateChildValues(values) { (error, reference) in
+    childRef.updateChildValues(values) { (error, reference) in
       if error != nil {
         print("Error", error ?? "")
         return
       }
       
       print("Successfully added new car to db")
+      self.fetchCarsFor(uid: uid)
     }
   }
   

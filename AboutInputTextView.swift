@@ -16,7 +16,7 @@ class AboutInputTextView: UITextView {
     }
   }
   
-  fileprivate let placeholderLabel: UILabel = {
+  let placeholderLabel: UILabel = {
     let label = UILabel()
     label.text = "Расскажите о себе"
     label.textColor = UIColor(white: 0, alpha: 0.2)

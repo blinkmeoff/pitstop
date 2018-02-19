@@ -196,7 +196,7 @@ class ClientDetailsController: UIViewController, UIImagePickerControllerDelegate
     
     guard let uid = Auth.auth().currentUser?.uid else { return }
     guard let fcmToken = Messaging.messaging().fcmToken else { return }
-    var dictionaryValues = ["phoneNumber": phoneNumber, "username": username, "isClient": 1, "profileImageUrl": "", "fcmToken": fcmToken] as [String: Any]
+    var dictionaryValues = ["phoneNumber": phoneNumber, "username": username, "isClient": 1, "profileImageUrl": "", "fcmToken": fcmToken, "creationDate": Date().timeIntervalSince1970] as [String: Any]
 
     if isImageChoosen {
       Storage.storage().reference().child("profile_images").child(filename).putData(uploadData, metadata: nil) { (metadata, err) in
@@ -284,8 +284,12 @@ class ClientDetailsController: UIViewController, UIImagePickerControllerDelegate
   }()
   
   @objc func handleAlreadyHaveAccount() {
-    let loginController = LoginController()
-    navigationController?.pushViewController(loginController, animated: true)
+    self.presentConfirmAlert(message: "Введенные данные будут потерянны", title: "Вы уверенны, что хотите прервать регистрацию?") { (isConfirmed) in
+      if isConfirmed {
+        let loginController = LoginController()
+        self.navigationController?.pushViewController(loginController, animated: true)
+      }
+    }
   }
   
   

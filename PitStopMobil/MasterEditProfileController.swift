@@ -9,15 +9,23 @@
 import UIKit
 import LBTAComponents
 import Firebase
-
+import GooglePlacePicker
 class MasterEditProfileController: UIViewController {
   
+  var placesClient: GMSPlacesClient!
+
   var master: Master? {
     didSet {
-      nameTextField.placeholder = master?.username
-      addressTextField.placeholder = master?.address
-      cityTextField.placeholder = master?.city
+      let attrPlaceholder = NSAttributedString(string: master?.username ?? "-", attributes: [NSAttributedStringKey.foregroundColor: UIColor.lightGray])
+      nameTextField.attributedPlaceholder = attrPlaceholder
+      addressLabel.text = master?.address
+      cityLabel.text = master?.city
       aboutTextView.text = master?.about?.count ?? 0 > 0 ? master?.about : ""
+      aboutTextView.textColor = .lightGray
+      aboutTextView.placeholderLabel.textColor = .lightGray
+      aboutTextView.handleTextChange()
+      
+      [addressLabel, cityLabel].forEach({$0.textColor = .lightGray})
       
       if let imageURL = master?.profileImageUrl {
         profileImageView.loadImage(urlString: imageURL)
@@ -32,6 +40,8 @@ class MasterEditProfileController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    placesClient = GMSPlacesClient.shared()
+
     navigationItem.title = "Редактировать профиль"
     tabBarController?.tabBar.isHidden = true
     view.backgroundColor = .white
@@ -66,7 +76,8 @@ class MasterEditProfileController: UIViewController {
   }
   
   @objc func handleTextInputChange() {
-    let isValid = nameTextField.text?.count ?? 0 > 0 || addressTextField.text?.count ?? 0 > 0 || cityTextField.text?.count ?? 0 > 0
+    nameTextField.textColor = .black
+    let isValid = nameTextField.text?.count ?? 0 > 0 || addressLabel.text?.count ?? 0 > 0 || cityLabel.text?.count ?? 0 > 0
     isForm(valid: isValid)
   }
   
@@ -91,29 +102,68 @@ class MasterEditProfileController: UIViewController {
   }()
   
   
+  lazy var addressLabel: UILabel = {
+    let tf = UILabel()
+    tf.text = "Адрес"
+    tf.backgroundColor = .clear
+    tf.textColor = .lightGray
+    tf.font = UIFont.systemFont(ofSize: 14)
+    tf.isUserInteractionEnabled = true
+    tf.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleAddressChoose)))
+    return tf
+  }()
+  
+  @objc private func handleAddressChoose() {
+    removeKeyboard {
+      let config = GMSPlacePickerConfig(viewport: nil)
+      let placePicker = GMSPlacePickerViewController(config: config)
+      placePicker.delegate = self
+      
+      present(placePicker, animated: true, completion: nil)
+    }
+  }
+  
   lazy var addressTextField: UITextField = {
     let tf = UITextField()
-    tf.placeholder = "Адрес"
     tf.backgroundColor = UIColor(white: 0, alpha: 0.03)
     tf.borderStyle = .roundedRect
     tf.returnKeyType = .done
     tf.font = UIFont.systemFont(ofSize: 14)
-    tf.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
-    tf.delegate = self
+    tf.isEnabled = true
     return tf
   }()
   
   lazy var cityTextField: UITextField = {
     let tf = UITextField()
-    tf.placeholder = "Область"
     tf.backgroundColor = UIColor(white: 0, alpha: 0.03)
     tf.borderStyle = .roundedRect
     tf.returnKeyType = .done
     tf.font = UIFont.systemFont(ofSize: 14)
-    tf.addTarget(self, action: #selector(handleTextInputChange), for: .editingChanged)
-    tf.delegate = self
+    tf.isEnabled = true
     return tf
   }()
+  
+  lazy var cityLabel: UILabel = {
+    let tf = UILabel()
+    tf.backgroundColor = .clear
+    tf.textColor = .lightGray
+    tf.font = UIFont.systemFont(ofSize: 14)
+    tf.isUserInteractionEnabled = true
+    tf.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCityChoose)))
+    return tf
+  }()
+  
+  
+  
+  @objc private func handleCityChoose() {
+    removeKeyboard {
+      let flowLayout = UICollectionViewFlowLayout()
+      let cityPickerController = CityPickerController(collectionViewLayout: flowLayout)
+      cityPickerController.masterEditController = self
+      let navController = UINavigationController(rootViewController: cityPickerController)
+      present(navController, animated: true, completion: nil)
+    }
+  }
   
   func clearCommentTextField() {
     aboutTextView.text = nil
@@ -159,17 +209,17 @@ class MasterEditProfileController: UIViewController {
       values["username"] = username
     }
     
-    if addressTextField.text?.count ?? 0 > 0, let address = addressTextField.text {
+    if addressLabel.text?.count ?? 0 > 0, let address = addressLabel.text {
       values["address"] = address
     }
     
-    if cityTextField.text?.count ?? 0 > 0, let city = cityTextField.text {
+    if cityLabel.text?.count ?? 0 > 0, let city = cityLabel.text {
       values["city"] = city
       values["longitude"] = longitude
       values["latitude"] = latitude
     }
     
-    if aboutTextView.text.count > 0, let about = aboutTextView.text {
+    if aboutTextView.text.count >= 0, let about = aboutTextView.text {
       values["about"] = about
     }
     
@@ -253,6 +303,12 @@ class MasterEditProfileController: UIViewController {
     stackView.spacing = 10
     view.addSubview(stackView)
     stackView.anchor(top: profileImageView.bottomAnchor, left: view.leftAnchor, bottom: nil, right: view.rightAnchor, paddingTop: 50, paddingLeft: 40, paddingBottom: 0, paddingRight: 40, width: 0, height: 160)
+    
+    cityTextField.addSubview(cityLabel)
+    cityLabel.anchor(top: cityTextField.topAnchor, left: cityTextField.leftAnchor, bottom: cityTextField.bottomAnchor, right: cityTextField.rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 6, width: 0, height: 0)
+    
+    addressTextField.addSubview(addressLabel)
+    addressLabel.anchor(top: addressTextField.topAnchor, left: addressTextField.leftAnchor, bottom: addressTextField.bottomAnchor, right: addressTextField.rightAnchor, paddingTop: 0, paddingLeft: 8, paddingBottom: 0, paddingRight: 8, width: 0, height: 0)
     
     view.addSubview(aboutTextView)
     aboutTextView.anchor(top: stackView.bottomAnchor, left: view.leftAnchor, bottom: nil, right: view.rightAnchor, paddingTop: 10, paddingLeft: 40, paddingBottom: 0, paddingRight: 40, width: 0, height: 100)
@@ -342,31 +398,17 @@ extension MasterEditProfileController: UINavigationControllerDelegate, UIImagePi
     
     dismiss(animated: true, completion: nil)
   }
+  
+  typealias CompletionHandler = () -> Void
+  func removeKeyboard(completionHandler: CompletionHandler) {
+    view.endEditing(true)
+    completionHandler()
+  }
+  
 }
 
 
 extension MasterEditProfileController: UITextFieldDelegate {
-  
-  func textFieldDidBeginEditing(_ textField: UITextField) {
-    if textField == cityTextField {
-      let flowLayout = UICollectionViewFlowLayout()
-      let cityPickerController = CityPickerController(collectionViewLayout: flowLayout)
-      cityPickerController.masterEditController = self
-      let navController = UINavigationController(rootViewController: cityPickerController)
-      present(navController, animated: true, completion: nil)
-      
-      cityTextField.isEnabled = false
-      
-    } else if textField == addressTextField {
-      let chooseAddressController = ChooseAddressController()
-      chooseAddressController.masterEditController = self
-      let navController = UINavigationController(rootViewController: chooseAddressController)
-      present(navController, animated: true, completion: nil)
-      
-      addressTextField.isEnabled = false
-    }
-  }
-  
   
   func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
     let newLength = textField.text!.count + string.count - range.length
@@ -389,7 +431,11 @@ extension MasterEditProfileController: UITextFieldDelegate {
 extension MasterEditProfileController: UITextViewDelegate {
   
   func textViewDidChange(_ textView: UITextView) {
-    let isValid = textView.text.count > 0
+    textView.textColor = .black
+    let isValid = textView.text.count >= 0
+    if textView.text.isEmpty {
+      clearCommentTextField()
+    }
     isForm(valid: isValid)
     changeTotalLabel(textView: textView)
   }
@@ -403,7 +449,8 @@ extension MasterEditProfileController: UITextViewDelegate {
   func textViewDidEndEditing(_ textView: UITextView) {
     UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
       self.view.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
-    }, completion: nil)
+    }) { (_) in
+    }
   }
   
   func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -412,3 +459,60 @@ extension MasterEditProfileController: UITextViewDelegate {
     return numberOfChars <= aboutTextViewLenght
   }
 }
+
+
+extension MasterEditProfileController: GMSPlacePickerViewControllerDelegate {
+  func placePicker(_ viewController: GMSPlacePickerViewController, didPick place: GMSPlace) {
+    viewController.dismiss(animated: true, completion: nil)
+    self.placesClient.lookUpPlaceID(place.placeID, callback: { (placeLikelihoodList, err) in
+      if let error = err {
+        print("Pick Place error: \(error.localizedDescription)")
+        return
+      }
+      
+      var address = String()
+      
+      if let placeLikelihoodList = placeLikelihoodList {
+        
+        if let addr = placeLikelihoodList.addressComponents {
+          for value in addr {
+            if value.type == "route" {
+              address.append("\( value.name) ")
+            } else if value.type == "street_number" {
+              address.append("\( value.name) ")
+            } else if value.type == "sublocality_level_1" {
+              address.append("\( value.name) ")
+            }
+          }
+        }
+        
+        self.longitude = place.coordinate.longitude
+        self.latitude = place.coordinate.latitude
+        self.addressLabel.textColor = .black
+        self.addressLabel.text = address
+        self.handleTextInputChange()
+      }
+      
+    })
+    print("Latitude :- \(place.coordinate.latitude)")
+    print("Longitude :-\(place.coordinate.longitude)")
+    
+  }
+  
+  func placePicker(_ viewController: GMSPlacePickerViewController, didFailWithError error: Error) {
+    // In your own app you should handle this better, but for the demo we are just going to log
+    // a message.
+    NSLog("An error occurred while picking a place: \(error)")
+  }
+  
+  func placePickerDidCancel(_ viewController: GMSPlacePickerViewController) {
+    // Dismiss the place picker, as it cannot dismiss itself.
+    viewController.dismiss(animated: true, completion: nil)
+    
+    print("No place selected")
+//    placeNameLabel.text = "No place selected"
+  }
+}
+
+
+

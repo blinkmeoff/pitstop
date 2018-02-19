@@ -190,7 +190,7 @@ class NewOrderInfoController: UIViewController {
   
   @objc private func handleCreate() {
     
-    guard let text = textView.text, textView.text.count > 0 else {
+    guard let text = textView.text, textView.text.count > 5 else {
       showAlert(with: "Пожалуйста опишите проблему")
       return
     }

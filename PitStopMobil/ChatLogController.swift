@@ -298,7 +298,7 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     collectionView?.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 8, right: 0)
     collectionView?.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     collectionView?.alwaysBounceVertical = true
-    collectionView?.backgroundColor = .red
+    collectionView?.backgroundColor = .clear
     
     let backgroundImageView = UIImageView(image: #imageLiteral(resourceName: "chat_background"))
     collectionView?.backgroundView = backgroundImageView
@@ -655,7 +655,6 @@ class ChatLogController: UICollectionViewController, UITextFieldDelegate, UIColl
     startingFrame = startingImageView.superview?.convert(startingImageView.frame, to: nil)
     
     let zoomingImageView = UIImageView(frame: startingFrame!)
-    zoomingImageView.backgroundColor = UIColor.red
     zoomingImageView.image = startingImageView.image
     zoomingImageView.isUserInteractionEnabled = true
     zoomingImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleZoomOut)))
